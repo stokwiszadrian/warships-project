@@ -1,0 +1,26 @@
+{
+  "name": "psw-project",
+  "version": "1.0.0",
+  "description": "Warships using MQTT over Websocket",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stokwiszadrian/warships-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stokwiszadrian/warships-project/issues"
+  },
+  "homepage": "https://github.com/stokwiszadrian/warships-project#readme",
+  "dependencies": {
+    "browserify-shim": "^3.8.14",
+    "detect-port": "^1.3.0",
+    "express": "^4.17.2",
+    "paho-mqtt": "^1.1.0"
+  }
+}
