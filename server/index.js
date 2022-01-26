@@ -18,7 +18,7 @@ client
 
   const onConnect = () => {
     console.log("Connected")
-    server.subscribe('warships/server/#')
+    server.subscribe('warships/+/server/user/add')
     }
 
     const onFailure = (msg) => {
@@ -29,22 +29,26 @@ client
     const onMessageArrived = async (msg) => {
         const route = msg.destinationName.split("/")
         const data = JSON.parse(msg.payloadString)
-        switch (route[2]) {
+        console.log(route)
+        topic = `warships/${route[1]}/response`
+        switch (route[3]) {
             case "user":
                 
-                switch (route[3]) {
+                switch (route[4]) {
                     case "add":
 
                         const duplicate = await client.query("SELECT * FROM users WHERE login = $1", [ data.login ]);
 
                             if(duplicate.rows[0]) {
-                                console.log("TITLE DUPLICATE")
+                                server.send(topic, "TITLE_DUPLICATE")
+                                console.log("TITLE_DUPLICOATE")
                                 break;
                             }
                         await client.query(`
                         INSERT INTO users (login, password, active) VALUES ($1, $2, FALSE) RETURNING *
                         `, [data.login, data.password])
                         console.log(`user ${data.login} has been added`)
+                        server.send(topic, 'OK')
                     
                     default:
                         console.log("Action not recognized")
@@ -54,7 +58,6 @@ client
             default:
                 console.log("Action not recognized")
         }
-        // console.log(Object.keys(msg))
         // console.log(`Received a message from ${msg.destinationName}: ${JSON.parse(msg.payloadString)}`)
     }
 
