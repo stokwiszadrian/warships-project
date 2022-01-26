@@ -1,5 +1,5 @@
-global.WebSocket = require('ws')
 const client = require('./config/psqlClient')
+global.WebSocket = require('ws')
 const mqtt = require('paho-mqtt')
 const server = new mqtt.Client('127.0.0.1', 8000, "serwer")
 
@@ -18,7 +18,7 @@ client
 
   const onConnect = () => {
     console.log("Connected")
-    client.subscribe('warships/server/#')
+    server.subscribe('warships/server/#')
     }
 
     const onFailure = (msg) => {
@@ -28,19 +28,16 @@ client
 
     const onMessageArrived = (msg) => {
         console.log(Object.keys(msg))
-        console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
+        console.log(`Received a message from ${msg.destinationName}: ${JSON.parse(msg.payloadString).kek}`)
     }
 
-    const MQTTconnect = () => {
-        console.log("connecting to mqtt")
-        const options = {
-            timeout: 3,
-            onSuccess: onConnect,
-            onFailure: onFailure,
-            onMessageArrived: onMessageArrived
-        }
-        client.connect(options)
+    console.log("connecting to mqtt")
+    const options = {
+        timeout: 3,
+        onSuccess: onConnect,
+        onFailure: onFailure,
     }
-
-    MQTTconnect()
+    server.onMessageArrived = onMessageArrived
+    server.connect(options)
 })
+.catch(err => console.error('An error occurred while connecting to the database', err.stack));
