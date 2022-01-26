@@ -10,7 +10,7 @@ client
 
   client.query(`CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    login VARCHAR(60) NOT NULL,
+    login VARCHAR(60) UNIQUE NOT NULL,
     password VARCHAR(60) NOT NULL,
     active BOOLEAN NOT NULL
   );
@@ -26,9 +26,36 @@ client
         setTimeout(MQTTconnect, reconnectTimeout)
     }
 
-    const onMessageArrived = (msg) => {
-        console.log(Object.keys(msg))
-        console.log(`Received a message from ${msg.destinationName}: ${JSON.parse(msg.payloadString).kek}`)
+    const onMessageArrived = async (msg) => {
+        const route = msg.destinationName.split("/")
+        const data = JSON.parse(msg.payloadString)
+        switch (route[2]) {
+            case "user":
+                
+                switch (route[3]) {
+                    case "add":
+
+                        const duplicate = await client.query("SELECT * FROM users WHERE login = $1", [ data.login ]);
+
+                            if(duplicate.rows[0]) {
+                                console.log("TITLE DUPLICATE")
+                                break;
+                            }
+                        await client.query(`
+                        INSERT INTO users (login, password, active) VALUES ($1, $2, FALSE) RETURNING *
+                        `, [data.login, data.password])
+                        console.log(`user ${data.login} has been added`)
+                    
+                    default:
+                        console.log("Action not recognized")
+                }
+
+
+            default:
+                console.log("Action not recognized")
+        }
+        // console.log(Object.keys(msg))
+        // console.log(`Received a message from ${msg.destinationName}: ${JSON.parse(msg.payloadString)}`)
     }
 
     console.log("connecting to mqtt")
