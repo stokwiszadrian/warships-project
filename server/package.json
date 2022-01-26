@@ -19,9 +19,13 @@
   "homepage": "https://github.com/stokwiszadrian/warships-project#readme",
   "dependencies": {
     "browserify-shim": "^3.8.14",
+    "cors": "^2.8.5",
     "detect-port": "^1.3.0",
+    "dotenv": "^14.3.2",
     "ejs": "^3.1.6",
     "express": "^4.17.2",
-    "paho-mqtt": "^1.1.0"
+    "paho-mqtt": "^1.1.0",
+    "pg": "^8.7.1",
+    "ws": "^8.4.2"
   }
 }
