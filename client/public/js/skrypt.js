@@ -2398,62 +2398,56 @@ function onMessageArrived(message) {
 
 }).call(this)}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],2:[function(require,module,exports){
-const mqtt = require('paho-mqtt')
-const client = new mqtt.Client('127.0.0.1', 8000, "client")
-const reconnectTimeout = 2000
- 
-const onConnect = () => {
-    console.log("Connected")
-    client.subscribe('test')
-    const message = new mqtt.Message("Hello world")
-    message.destinationName = 'test'
-    console.log(message, client)
-    client.send(message)
+"use strict";
+
+var mqtt = require('paho-mqtt');
+
+var client = new mqtt.Client('127.0.0.1', 8000, "client");
+var reconnectTimeout = 2000;
+
+var onConnect = function onConnect() {
+  console.log("Connected");
+  client.subscribe('test');
+  var message = new mqtt.Message("Hello world");
+  message.destinationName = 'test';
+  console.log(message, client);
+  client.send(message);
+};
+
+var onFailure = function onFailure(msg) {
+  console.log("Connection attempt to host 127.0.0.1 failed.");
+  setTimeout(MQTTconnect, reconnectTimeout);
+};
+
+var onMessageArrived = function onMessageArrived(msg) {
+  console.log("Received a message from ".concat(msg.destinationName, ": ").concat(msg.payloadString));
+};
+
+var MQTTconnect = function MQTTconnect() {
+  console.log("connecting to mqtt");
+  var options = {
+    timeout: 3,
+    onSuccess: onConnect,
+    onFailure: onFailure
+  };
+  client.onMessageArrived = onMessageArrived;
+  client.connect(options);
+};
+
+function mqttSwap() {
+  mqttButton.parentElement.style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
 }
 
-const onFailure = (msg) => {
-    console.log("Connection attempt to host 127.0.0.1 failed.")
-    setTimeout(MQTTconnect, reconnectTimeout)
+function dashSwap() {
+  dashboardButton.parentElement.style.display = "none";
+  document.getElementById("mqtt").style.display = "block";
 }
 
-const onMessageArrived = (msg) => {
-    console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
-}
+var mqttButton = document.getElementById("mqtt").getElementsByClassName("swap")[0];
+var dashboardButton = document.getElementById("dashboard").getElementsByClassName("swap")[0];
+mqttButton.addEventListener("click", mqttSwap, false);
+dashboardButton.addEventListener("click", dashSwap, false);
+MQTTconnect();
 
-const MQTTconnect = () => {
-    console.log("connecting to mqtt")
-    const options = {
-        timeout: 3,
-        onSuccess: onConnect,
-        onFailure: onFailure
-    }
-    client.onMessageArrived = onMessageArrived
-    client.connect(options)
-}
-
-function pushFunction(b) {
-    switch (b.id) {
-        case 'one':
-            console.log("ONE")
-            window.history.pushState("", "", "http://localhost:3000/one")
-            window.history.forward()
-            console.log(window.history)
-        case 'two':
-            console.log("TWO")
-            window.history.pushState("", "", "http://localhost:3000/two ")
-            window.history.forward()
-        // default:
-        //     console.log("ZAMN")
-            
-    }
-}
-
-const bttn = document.getElementsByClassName('swap')
-console.log(bttn[0])
-if (bttn){
-    bttn[0].addEventListener("click", function() {pushFunction(bttn[0])}, false)
-}
-
-
-MQTTconnect() 
 },{"paho-mqtt":1}]},{},[2]);

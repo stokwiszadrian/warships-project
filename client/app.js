@@ -3,15 +3,9 @@ const app = express()
 const detect = require('detect-port')
 
 app.use(express.static('public'))
-
-app.get('/one', (req, res) => {
+app.get('', (req, res) => {
     res.render('index.ejs')
 })
-
-app.get('/two', (req, res) => {
-    res.render('index2.ejs')
-})
-
 
 const port = 3000
 

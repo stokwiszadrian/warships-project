@@ -31,29 +31,20 @@ const MQTTconnect = () => {
     client.connect(options)
 }
 
-function pushFunction(b) {
-    switch (b.id) {
-        case 'one':
-            console.log("ONE")
-            window.history.pushState("", "", "http://localhost:3000/one")
-            window.history.forward()
-            console.log(window.history)
-        case 'two':
-            console.log("TWO")
-            window.history.pushState("", "", "http://localhost:3000/two ")
-            window.history.forward()
-            console.log(window.history)
-        // default:
-        //     console.log("ZAMN")
-            
-    }
+function mqttSwap() {
+        mqttButton.parentElement.style.display = "none"
+        document.getElementById("dashboard").style.display = "block"
 }
 
-const bttn = document.getElementsByClassName('swap')
-console.log(bttn[0])
-if (bttn){
-    bttn[0].addEventListener("click", function() {pushFunction(bttn[0])}, false)
+function dashSwap() {
+    dashboardButton.parentElement.style.display = "none"
+    document.getElementById("mqtt").style.display = "block"
 }
+
+const mqttButton = document.getElementById("mqtt").getElementsByClassName("swap")[0]
+const dashboardButton = document.getElementById("dashboard").getElementsByClassName("swap")[0]
+mqttButton.addEventListener("click", mqttSwap, false)
+dashboardButton.addEventListener("click", dashSwap, false)
 
 
 MQTTconnect() 
