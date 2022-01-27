@@ -9,19 +9,21 @@ function formSubmit() {
         login: document.getElementsByTagName("input")[0].value,
         password: document.getElementsByTagName("input")[1].value
     }
+    document.getElementsByTagName("input")[0].value = ""
+    document.getElementsByTagName("input")[1].value = ""
     console.log(credentials)
     client.send(`warships/${id}/server/user/login`, JSON.stringify(credentials))
 }
 
-function dashSwap() {
-dashboardButton.parentElement.style.display = "none"
-document.getElementById("mqtt").style.display = "block"
+function logout() {
+    logoutButton.parentElement.style.display = "none"
+    document.getElementById("main").style.display = "block"
 }
 
 const loginButton = document.getElementById("submit")
-const dashboardButton = document.getElementById("dashboard").getElementsByClassName("swap")[0]
+const logoutButton = document.getElementsByClassName("logout")[0]
 loginButton.addEventListener("click", formSubmit, false)
-dashboardButton.addEventListener("click", dashSwap, false)
+logoutButton.addEventListener("click", logout, false)
 
 
 const onConnect = () => {
@@ -41,7 +43,8 @@ const onMessageArrived = (msg) => {
     switch(data.response) {
         case "LOGIN OK":
             console.log("SUCCESS")
-            loginButton.parentElement.style.display = "none"
+            //document.getElementById("loginform").reset()
+            document.getElementById("main").style.display = "none"
             document.getElementById("dashboard").style.display = "block"
             document.getElementsByClassName("error")[0].style.display = "none"
             document.getElementById("usergreeting").textContent = `Welcome back, ${data.user}`
