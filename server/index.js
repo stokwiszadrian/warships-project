@@ -18,7 +18,7 @@ client
 
   const onConnect = () => {
     console.log("Connected")
-    server.subscribe('warships/+/server/user/add')
+    server.subscribe('warships/+/server/#')
     }
 
     const onFailure = (msg) => {
@@ -33,7 +33,6 @@ client
         topic = `warships/${route[1]}/response`
         switch (route[3]) {
             case "user":
-                
                 switch (route[4]) {
                     case "add":
 
@@ -41,7 +40,7 @@ client
 
                             if(duplicate.rows[0]) {
                                 server.send(topic, "TITLE_DUPLICATE")
-                                console.log("TITLE_DUPLICOATE")
+                                console.log("TITLE_DUPLICATE")
                                 break;
                             }
                         await client.query(`
@@ -49,6 +48,22 @@ client
                         `, [data.login, data.password])
                         console.log(`user ${data.login} has been added`)
                         server.send(topic, 'OK')
+                        break;
+
+                    case "login":
+                        const check = await client.query("SELECT * FROM users WHERE login = $1 AND password = $2", [data.login, data.password])
+                            if(check.rows[0]) {
+                                server.send(topic, JSON.stringify({
+                                    response: "LOGIN OK",
+                                    user: check.rows[0].login
+                                }))
+                            }
+                            else {
+                                server.send(topic, JSON.stringify({
+                                    response: "AUTHENTICATION FAILED"
+                                }))
+                            }
+                        break;
                     
                     default:
                         console.log("Action not recognized")

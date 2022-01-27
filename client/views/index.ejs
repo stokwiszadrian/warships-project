@@ -11,11 +11,25 @@
 <body>
   <div id="mqtt">
     <h1 id="title">MQTT</h1>
-    <button class="swap">Go to dashboard</button>
+    <h2>Zaloguj się</h2>
+    <form name="formularz">
+      <label>
+        Nazwa użytkownika:
+        <input type="text">
+      </label>
+      <label>
+        Hasło:
+        <input type="password">
+      </label>
+      <br>
+      <button type="button" id="submit">Zaloguj</button>
+    </form>
+    <h4 class="error">Niepoprawne dane użytkownika</h4>
   </div>
   <div id="dashboard">
     <h1 id="title">DASHBOARD</h1>
     <button class="swap">Go to MQTT</button>
+    <h2 id="usergreeting"></h2>
   </div>
 </body>
 
