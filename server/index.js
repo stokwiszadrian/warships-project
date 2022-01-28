@@ -39,15 +39,21 @@ client
                         const duplicate = await client.query("SELECT * FROM users WHERE login = $1", [ data.login ]);
 
                             if(duplicate.rows[0]) {
-                                server.send(topic, "TITLE_DUPLICATE")
-                                console.log("TITLE_DUPLICATE")
+                                console.log(duplicate)
+                                server.send(topic, JSON.stringify({
+                                    response: "LOGIN_DUPLICATE"
+                                    })
+                                )
+                                console.log("LOGIN_DUPLICATE")
                                 break;
                             }
                         await client.query(`
                         INSERT INTO users (login, password, active) VALUES ($1, $2, FALSE) RETURNING *
                         `, [data.login, data.password])
                         console.log(`user ${data.login} has been added`)
-                        server.send(topic, 'OK')
+                        server.send(topic, JSON.stringify({
+                            response: "USER ADD OK"
+                        }))
                         break;
 
                     case "login":

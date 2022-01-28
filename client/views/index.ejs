@@ -10,7 +10,7 @@
 
 <body>
   <div id="main">
-    <h1 id="title">MQTT</h1>
+    <h1 class="title">MQTT</h1>
     <h2>Zaloguj się</h2>
     <form name="loginform">
       <label>
@@ -22,15 +22,38 @@
         <input type="password">
       </label>
       <br>
-      <button type="button" id="submit">Zaloguj</button>
+      <button type="button" class="submit">Zaloguj</button>
     </form>
+    <button class="register">Zarejestruj się</button>
     <h4 class="error">Niepoprawne dane użytkownika</h4>
   </div>
+  <div id="register">
+    <h2>Zarejestruj się</h2>
+    <form name="registerform">
+      <label>
+        Nazwa użytkownika:
+        <input type="text" required>
+      </label>
+      <label>
+        Hasło:
+        <input type="password" required>
+      </label>
+      <label>
+        Powtórz hasło:
+        <input type="password" required>
+      </label>
+      <br>
+      <button type="button" class="submit">Zarejestruj</button>
+    </form>
+    <h4 class="error login">Nazwa użytkownika jest już zajęta</h4>
+    <h4 class="error inputs">Wszystkie pola są wymagane</h4>
+    <h4 class="error wrongpass">Hasło i powtórzone hasło różnią się od siebie!</h4>
+  </div>
   <div id="dashboard">
-    <h1 id="title">DASHBOARD</h1>
+    <h1 class="title">DASHBOARD</h1>
     <button class="logout">Wyloguj się</button>
     <button class="newgame">New game</button>
-    <h2 id="usergreeting"></h2>
+    <h2 class="usergreeting"></h2>
   </div>
 </body>
 

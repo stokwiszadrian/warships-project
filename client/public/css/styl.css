@@ -2,6 +2,10 @@
     display: none;
 }
 
+#register {
+    display: none;
+}
+
 .error {
     display: none;
     color: red;

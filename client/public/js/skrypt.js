@@ -3400,12 +3400,15 @@ var _require = require('uuid'),
 var id = uuidv4();
 var client = new mqtt.Client('127.0.0.1', 8000, id);
 var reconnectTimeout = 2000;
+var main = document.getElementById("main");
+var dashboard = document.getElementById("dashboard");
+var register = document.getElementById("register");
 
 if (_jsCookie["default"].get('user')) {
-  document.getElementById("main").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-  document.getElementsByClassName("error")[0].style.display = "none";
-  document.getElementById("usergreeting").textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
+  main.style.display = "none";
+  dashboard.style.display = "block";
+  main.getElementsByClassName("error")[0].style.display = "none";
+  dashboard.getElementsByClassName("usergreeting").textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
   console.log(_jsCookie["default"].get('user'));
 } else {
   console.log("Nikt nie jest zalogowany");
@@ -3413,11 +3416,11 @@ if (_jsCookie["default"].get('user')) {
 
 function formSubmit() {
   var credentials = {
-    login: document.getElementsByTagName("input")[0].value,
-    password: document.getElementsByTagName("input")[1].value
+    login: main.getElementsByTagName("input")[0].value,
+    password: main.getElementsByTagName("input")[1].value
   };
-  document.getElementsByTagName("input")[0].value = "";
-  document.getElementsByTagName("input")[1].value = "";
+  main.getElementsByTagName("input")[0].value = "";
+  main.getElementsByTagName("input")[1].value = "";
   console.log(credentials);
   client.send("warships/".concat(id, "/server/user/login"), JSON.stringify(credentials));
 }
@@ -3426,13 +3429,48 @@ function logout() {
   _jsCookie["default"].remove('user');
 
   logoutButton.parentElement.style.display = "none";
-  document.getElementById("main").style.display = "block";
+  main.style.display = "block";
 }
 
-var loginButton = document.getElementById("submit");
-var logoutButton = document.getElementsByClassName("logout")[0];
+function addUser() {
+  Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
+    return error.style.display = "none";
+  });
+  var login = register.getElementsByTagName("input")[0];
+  var pass1 = register.getElementsByTagName("input")[1];
+  var pass2 = register.getElementsByTagName("input")[2];
+
+  if (login.value.replaceAll(" ", "") == "" || pass1.value.replaceAll(" ", "") == "" || pass2.value.replaceAll(" ", "") == "") {
+    register.getElementsByClassName("inputs")[0].style.display = "block";
+  } else if (pass1.value === pass2.value) {
+    var credentials = {
+      login: login.value,
+      password: pass1.value
+    };
+    login.value = "";
+    pass1.value = "";
+    pass2.value = "";
+    client.send("warships/".concat(id, "/server/user/add"), JSON.stringify(credentials));
+    register.style.display = "none";
+    main.style.display = "block";
+  } else {
+    register.getElementsByClassName("wrongpass")[0].style.display = "block";
+  }
+}
+
+function moveToRegiser() {
+  main.style.display = "none";
+  register.style.display = "block";
+}
+
+var loginButton = main.getElementsByClassName("submit")[0];
+var newUserButton = main.getElementsByClassName("register")[0];
+var logoutButton = dashboard.getElementsByClassName("logout")[0];
+var registerButton = register.getElementsByClassName("submit")[0];
 loginButton.addEventListener("click", formSubmit, false);
 logoutButton.addEventListener("click", logout, false);
+registerButton.addEventListener("click", addUser, false);
+newUserButton.addEventListener("click", moveToRegiser, false);
 
 var onConnect = function onConnect() {
   console.log("Connected, id:", id);
@@ -3451,11 +3489,10 @@ var onMessageArrived = function onMessageArrived(msg) {
 
   switch (data.response) {
     case "LOGIN OK":
-      console.log("SUCCESS");
-      document.getElementById("main").style.display = "none";
-      document.getElementById("dashboard").style.display = "block";
-      document.getElementsByClassName("error")[0].style.display = "none";
-      document.getElementById("usergreeting").textContent = "Welcome back, ".concat(data.user);
+      main.style.display = "none";
+      dashboard.style.display = "block";
+      main.getElementsByClassName("error")[0].style.display = "none";
+      dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(data.user);
 
       _jsCookie["default"].set('user', data.user, {
         expires: 1
@@ -3465,12 +3502,23 @@ var onMessageArrived = function onMessageArrived(msg) {
 
     case "AUTHENTICATION FAILED":
       console.log("FAILED");
-      document.getElementsByClassName("error")[0].style.display = "block";
+      main.getElementsByClassName("error")[0].style.display = "block";
+      break;
+
+    case "LOGIN_DUPLICATE":
+      console.log("LOGIN_DUPLICATE");
+      register.getElementsByClassName("login").style.display = "block";
       break;
 
     default:
-      document.getElementsByClassName("error")[0].style.display = "none";
+      main.getElementsByClassName("error")[0].style.display = "none";
       console.log("What is this?");
+  }
+};
+
+var onConnectionLost = function onConnectionLost(res) {
+  if (res.errorCode !== 0) {
+    console.log("onConnectoinLost: ".concat(res.errorMessagge));
   }
 };
 
@@ -3482,6 +3530,7 @@ var MQTTconnect = function MQTTconnect() {
     onFailure: onFailure
   };
   client.onMessageArrived = onMessageArrived;
+  client.onConnectionLost = onConnectionLost;
   client.connect(options);
 };
 
