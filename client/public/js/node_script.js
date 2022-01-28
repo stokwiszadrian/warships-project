@@ -3,6 +3,18 @@ const { v4: uuidv4 } = require('uuid')
 const id = uuidv4()
 const client = new mqtt.Client('127.0.0.1', 8000, id)
 const reconnectTimeout = 2000
+import Cookies from 'js-cookie'
+
+if (Cookies.get('user')) {
+    document.getElementById("main").style.display = "none"
+    document.getElementById("dashboard").style.display = "block"
+    document.getElementsByClassName("error")[0].style.display = "none"
+    document.getElementById("usergreeting").textContent = `Welcome back, ${Cookies.get('user')}`
+    console.log(Cookies.get('user'))
+}
+else {
+    console.log("Nikt nie jest zalogowany")
+}
 
 function formSubmit() {
     const credentials = {
@@ -16,6 +28,7 @@ function formSubmit() {
 }
 
 function logout() {
+    Cookies.remove('user')
     logoutButton.parentElement.style.display = "none"
     document.getElementById("main").style.display = "block"
 }
@@ -43,11 +56,11 @@ const onMessageArrived = (msg) => {
     switch(data.response) {
         case "LOGIN OK":
             console.log("SUCCESS")
-            //document.getElementById("loginform").reset()
             document.getElementById("main").style.display = "none"
             document.getElementById("dashboard").style.display = "block"
             document.getElementsByClassName("error")[0].style.display = "none"
             document.getElementById("usergreeting").textContent = `Welcome back, ${data.user}`
+            Cookies.set('user', data.user, { expires: 1 })
             break;
 
         case "AUTHENTICATION FAILED":
