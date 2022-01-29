@@ -14,7 +14,7 @@ if (Cookies.get('user')) {
     main.style.display = "none"
     dashboard.style.display = "block"
     main.getElementsByClassName("error")[0].style.display = "none"
-    dashboard.getElementsByClassName("usergreeting").textContent = `Welcome back, ${Cookies.get('user')}`
+    dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${Cookies.get('user')}`
     console.log(Cookies.get('user'))
 }
 else {
@@ -35,8 +35,7 @@ async function formSubmit() {
         dashboard.style.display = "block"
         main.getElementsByClassName("error")[0].style.display = "none"
         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${credentials.login}`
-        console.log(window.location)
-        Cookies.set('user', credentials.login, { expires: 1 })
+        Cookies.set('user', credentials.login, { expires: 14 })
     })
     .catch(rej => {
         if (rej.response.status == 401) {
@@ -57,7 +56,7 @@ async function logout() {
     main.style.display = "block"
 }
 
-function addUser() {
+async function addUser() {
     Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
     const login = register.getElementsByTagName("input")[0]
     const pass1 = register.getElementsByTagName("input")[1]
@@ -65,18 +64,24 @@ function addUser() {
     if (login.value.replaceAll(" ", "") == "" || pass1.value.replaceAll(" ", "") == "" || pass2.value.replaceAll(" ", "") == "") {
         register.getElementsByClassName("inputs")[0].style.display = "block"
     }
-
     else if (pass1.value === pass2.value) {
         const credentials = {
             login: login.value,
             password: pass1.value
         }
-        login.value = ""
-        pass1.value = ""
-        pass2.value = ""
-        client.send(`warships/${id}/server/user/add`, JSON.stringify(credentials))
-        register.style.display = "none"
-        main.style.display = "block"
+        axios.post("http://localhost:5000/users/newuser",credentials)
+        .then(res => {
+            register.style.display = "none"
+            main.style.display = "block"
+            login.value = ""
+            pass1.value = ""
+            pass2.value = ""
+        })
+        .catch(rej => {
+            if (rej.response.status == 500) {
+                register.getElementsByClassName("login")[0].style.display = "block"
+            }
+        })
     }
     else {
         register.getElementsByClassName("wrongpass")[0].style.display = "block"

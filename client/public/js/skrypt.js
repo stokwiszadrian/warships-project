@@ -6302,7 +6302,7 @@ if (_jsCookie["default"].get('user')) {
   main.style.display = "none";
   dashboard.style.display = "block";
   main.getElementsByClassName("error")[0].style.display = "none";
-  dashboard.getElementsByClassName("usergreeting").textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
+  dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
   console.log(_jsCookie["default"].get('user'));
 } else {
   console.log("Nikt nie jest zalogowany");
@@ -6334,10 +6334,9 @@ function _formSubmit() {
               dashboard.style.display = "block";
               main.getElementsByClassName("error")[0].style.display = "none";
               dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
-              console.log(window.location);
 
               _jsCookie["default"].set('user', credentials.login, {
-                expires: 1
+                expires: 14
               });
             })["catch"](function (rej) {
               if (rej.response.status == 401) {
@@ -6392,29 +6391,54 @@ function _logout() {
 }
 
 function addUser() {
-  Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
-    return error.style.display = "none";
-  });
-  var login = register.getElementsByTagName("input")[0];
-  var pass1 = register.getElementsByTagName("input")[1];
-  var pass2 = register.getElementsByTagName("input")[2];
+  return _addUser.apply(this, arguments);
+}
 
-  if (login.value.replaceAll(" ", "") == "" || pass1.value.replaceAll(" ", "") == "" || pass2.value.replaceAll(" ", "") == "") {
-    register.getElementsByClassName("inputs")[0].style.display = "block";
-  } else if (pass1.value === pass2.value) {
-    var credentials = {
-      login: login.value,
-      password: pass1.value
-    };
-    login.value = "";
-    pass1.value = "";
-    pass2.value = "";
-    client.send("warships/".concat(id, "/server/user/add"), JSON.stringify(credentials));
-    register.style.display = "none";
-    main.style.display = "block";
-  } else {
-    register.getElementsByClassName("wrongpass")[0].style.display = "block";
-  }
+function _addUser() {
+  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
+    var login, pass1, pass2, credentials;
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
+              return error.style.display = "none";
+            });
+            login = register.getElementsByTagName("input")[0];
+            pass1 = register.getElementsByTagName("input")[1];
+            pass2 = register.getElementsByTagName("input")[2];
+
+            if (login.value.replaceAll(" ", "") == "" || pass1.value.replaceAll(" ", "") == "" || pass2.value.replaceAll(" ", "") == "") {
+              register.getElementsByClassName("inputs")[0].style.display = "block";
+            } else if (pass1.value === pass2.value) {
+              credentials = {
+                login: login.value,
+                password: pass1.value
+              };
+
+              _axios["default"].post("http://localhost:5000/users/newuser", credentials).then(function (res) {
+                register.style.display = "none";
+                main.style.display = "block";
+                login.value = "";
+                pass1.value = "";
+                pass2.value = "";
+              })["catch"](function (rej) {
+                if (rej.response.status == 500) {
+                  register.getElementsByClassName("login")[0].style.display = "block";
+                }
+              });
+            } else {
+              register.getElementsByClassName("wrongpass")[0].style.display = "block";
+            }
+
+          case 5:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _addUser.apply(this, arguments);
 }
 
 function moveToRegiser() {
