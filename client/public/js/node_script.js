@@ -94,10 +94,47 @@ function moveToRegiser() {
     register.style.display = "block"
 }
 
-function newLobbyHandler() {
-    dashboard.style.display = "none"
-    lobby.style.display = "block"
-    MQTTconnect()
+async function newLobbyHandler() {
+    axios.post("http://localhost:5000/lobbies/newlobby", {
+        owner: Cookies.get('user'),
+        name: `${Cookies.get('user')}'s game`
+    })
+    .then(res => {
+        Cookies.set('lobby', `${Cookies.get('user')}'s game`)
+        dashboard.style.display = "none"
+        lobby.style.display = "block"
+        lobby.getElementsByClassName("lobbyname")[0].textContent = `${Cookies.get('user')}'s game`
+        const options = {
+            timeout: 3,
+            onSuccess: onConnect,
+            onFailure: onFailure
+        }
+        MQTTconnect(options)
+    })
+    .catch(rej => {
+        dashboard.getElementsByClassName("nonewlobby")[0].style.display = "block"
+        console.log(rej.response)
+    })
+}
+
+async function joinLobbyHandler() {
+    const name = dashboard.getElementsByTagName("input")[0].value
+    axios.get(`http://localhost:5000/lobbies/${name}`)
+    .then(res => {
+        lobby.getElementsByClassName("lobbyname")[0].textContent = name
+        dashboard.style.display = "none"
+        lobby.style.display = "block"
+        const options = {
+            timeout: 3,
+            onSuccess: joiningConnect,
+            onFailure: onFailure
+        }
+        MQTTconnect(options)
+    })
+    .catch(rej => {
+        dashboard.getElementsByClassName("nojoinlobby")[0].style.display = "block"
+        console.log(rej.response)
+    })
 }
 
 const loginButton = main.getElementsByClassName("submit")[0]
@@ -105,17 +142,26 @@ const newUserButton = main.getElementsByClassName("register")[0]
 const logoutButton = dashboard.getElementsByClassName("logout")[0]
 const registerButton = register.getElementsByClassName("submit")[0]
 const newLobbyButton = dashboard.getElementsByClassName("newlobby")[0]
+const joinLobbyButton = dashboard.getElementsByClassName("submit")[0]
 newLobbyButton.addEventListener("click", newLobbyHandler, false)
 loginButton.addEventListener("click", formSubmit, false)
 logoutButton.addEventListener("click", logout, false)
 registerButton.addEventListener("click", addUser, false)
 newUserButton.addEventListener("click", moveToRegiser, false)
+joinLobbyButton.addEventListener("click", joinLobbyHandler, false)
 
+const joiningConnect = async () => {
+    const name = dashboard.getElementsByTagName("input")[0].value
+    console.log("Connected, id:", id)
+    client.subscribe(`warships/${name}/chat/#`)
+    client.subscribe(`warships/${name}/game/#`)
+}
 
 const onConnect = () => {
+    const name = Cookies.get('lobby')
     console.log("Connected, id:", id)
-    client.subscribe(`warships/${id}/chat/#`)
-    client.subscribe(`warships/${id}/game/#`)
+    client.subscribe(`warships/${name}/chat/#`)
+    client.subscribe(`warships/${name}/game/#`)
 }
 
 const onFailure = (msg) => {
@@ -134,51 +180,18 @@ const onMessageArrived = (msg) => {
     newmsg.appendChild(msgcontent)
     newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
     lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
-
-
-    // const data = JSON.parse(msg.payloadString)
-    // switch(data.response) {
-    //     case "LOGIN OK":
-    //         main.style.display = "none"
-    //         dashboard.style.display = "block"
-    //         main.getElementsByClassName("error")[0].style.display = "none"
-    //         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${data.user}`
-    //         Cookies.set('user', data.user, { expires: 1 })
-    //         break;
-
-    //     case "AUTHENTICATION FAILED":
-    //         console.log("FAILED")
-    //         main.getElementsByClassName("error")[0].style.display = "block"
-    //         break;
-
-    //     case "LOGIN_DUPLICATE":
-    //         console.log("LOGIN_DUPLICATE")
-    //         register.getElementsByClassName("login").style.display = "block"
-    //         break;
-
-    //     default: 
-    //         main.getElementsByClassName("error")[0].style.display = "none"
-    //         console.log("What is this?")
-    // }
 }
 
 const onConnectionLost = (res) => {
     if (res.errorCode !== 0) {
         console.log(`onConnectoinLost: ${res.errorMessagge}`)
     }
+
 }
 
-const MQTTconnect = () => {
+const MQTTconnect = (options) => {
     console.log("connecting to mqtt")
-    const options = {
-        timeout: 3,
-        onSuccess: onConnect,
-        onFailure: onFailure
-    }
     client.onMessageArrived = onMessageArrived
     client.onConnectionLost = onConnectionLost
     client.connect(options)
 }
-
-
-//MQTTconnect() 

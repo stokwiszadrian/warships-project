@@ -24,6 +24,12 @@ router.post("/newlobby", async (req, res) => {
     return res.send(newlobby.rows[0])
 })
 
+router.get("/:lobbyname", async (req, res) => {
+    const checkName = await client.query("SELECT * FROM lobbies WHERE name = $1", [ req.params.lobbyname ])
+    return checkName.rows[0] ? res.send(checkName.rows[0]) : res.sendStatus(500)
+
+})
+
 router.delete("/:owner", async (req, res) => {
     const del = await client.query("DELETE FROM lobbies WHERE owner = $1", [ req.params.owner ])
     return res.sendStatus(200)
