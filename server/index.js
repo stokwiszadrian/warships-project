@@ -5,12 +5,13 @@ const client = require('./config/psqlClient')
 const cors = require('cors')
 const express = require('express')
 const users = require("./routes/users")
-
+const lobbies = require("./routes/lobbies")
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 app.use("/users", users)
+app.use("/lobbies", lobbies)
 
 client
 .connect()
@@ -23,6 +24,12 @@ client
     password VARCHAR(60) NOT NULL,
     active BOOLEAN NOT NULL
   );
+
+    CREATE TABLE IF NOT EXISTS lobbies (
+        id SERIAL PRIMARY KEY,
+        owner VARCHAR(60) UNIQUE NOT NULL,
+        name VARCHAR(60) UNIQUE NOT NULL
+    )
   `);
 
   const port = 5000
