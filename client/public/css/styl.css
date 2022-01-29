@@ -11,6 +11,10 @@ body {
     display: none;
 }
 
+#lobby {
+    display: none;
+}
+
 .error {
     display: none;
     color: red;

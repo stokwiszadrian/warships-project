@@ -9,6 +9,7 @@ import axios from 'axios'
 const main = document.getElementById("main")
 const dashboard = document.getElementById("dashboard")
 const register = document.getElementById("register")
+const lobby = document.getElementById("lobby")
 
 if (Cookies.get('user')) {
     main.style.display = "none"
@@ -93,72 +94,91 @@ function moveToRegiser() {
     register.style.display = "block"
 }
 
+function newLobbyHandler() {
+    dashboard.style.display = "none"
+    lobby.style.display = "block"
+    MQTTconnect()
+}
+
 const loginButton = main.getElementsByClassName("submit")[0]
 const newUserButton = main.getElementsByClassName("register")[0]
 const logoutButton = dashboard.getElementsByClassName("logout")[0]
 const registerButton = register.getElementsByClassName("submit")[0]
+const newLobbyButton = dashboard.getElementsByClassName("newlobby")[0]
+newLobbyButton.addEventListener("click", newLobbyHandler, false)
 loginButton.addEventListener("click", formSubmit, false)
 logoutButton.addEventListener("click", logout, false)
 registerButton.addEventListener("click", addUser, false)
 newUserButton.addEventListener("click", moveToRegiser, false)
 
 
-// const onConnect = () => {
-//     console.log("Connected, id:", id)
-//     client.subscribe(`warships/${id}/response`)
-// }
+const onConnect = () => {
+    console.log("Connected, id:", id)
+    client.subscribe(`warships/${id}/chat/#`)
+    client.subscribe(`warships/${id}/game/#`)
+}
 
-// const onFailure = (msg) => {
-//     console.log("Connection attempt to host 127.0.0.1 failed.")
-//     setTimeout(MQTTconnect, reconnectTimeout)
-// }
+const onFailure = (msg) => {
+    console.log("Connection attempt to host 127.0.0.1 failed.")
+    setTimeout(MQTTconnect, reconnectTimeout)
+}
 
-// const onMessageArrived = (msg) => {
-//     console.log(msg)
-//     console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
-//     const data = JSON.parse(msg.payloadString)
-//     switch(data.response) {
-//         case "LOGIN OK":
-//             main.style.display = "none"
-//             dashboard.style.display = "block"
-//             main.getElementsByClassName("error")[0].style.display = "none"
-//             dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${data.user}`
-//             Cookies.set('user', data.user, { expires: 1 })
-//             break;
+const onMessageArrived = (msg) => {
+    const sender = msg.destinationName.split("/")[3]
+    console.log(msg)
+    const messagebox = lobby.getElementsByClassName("messagebox")[0]
+    console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
+    const lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), -1)
+    const newmsg = document.createElement('div')
+    const msgcontent = document.createTextNode(`${sender}: ${msg.payloadString}`)
+    newmsg.appendChild(msgcontent)
+    newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
+    lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
 
-//         case "AUTHENTICATION FAILED":
-//             console.log("FAILED")
-//             main.getElementsByClassName("error")[0].style.display = "block"
-//             break;
 
-//         case "LOGIN_DUPLICATE":
-//             console.log("LOGIN_DUPLICATE")
-//             register.getElementsByClassName("login").style.display = "block"
-//             break;
+    // const data = JSON.parse(msg.payloadString)
+    // switch(data.response) {
+    //     case "LOGIN OK":
+    //         main.style.display = "none"
+    //         dashboard.style.display = "block"
+    //         main.getElementsByClassName("error")[0].style.display = "none"
+    //         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${data.user}`
+    //         Cookies.set('user', data.user, { expires: 1 })
+    //         break;
 
-//         default: 
-//             main.getElementsByClassName("error")[0].style.display = "none"
-//             console.log("What is this?")
-//     }
-// }
+    //     case "AUTHENTICATION FAILED":
+    //         console.log("FAILED")
+    //         main.getElementsByClassName("error")[0].style.display = "block"
+    //         break;
 
-// const onConnectionLost = (res) => {
-//     if (res.errorCode !== 0) {
-//         console.log(`onConnectoinLost: ${res.errorMessagge}`)
-//     }
-// }
+    //     case "LOGIN_DUPLICATE":
+    //         console.log("LOGIN_DUPLICATE")
+    //         register.getElementsByClassName("login").style.display = "block"
+    //         break;
 
-// const MQTTconnect = () => {
-//     console.log("connecting to mqtt")
-//     const options = {
-//         timeout: 3,
-//         onSuccess: onConnect,
-//         onFailure: onFailure
-//     }
-//     client.onMessageArrived = onMessageArrived
-//     client.onConnectionLost = onConnectionLost
-//     client.connect(options)
-// }
+    //     default: 
+    //         main.getElementsByClassName("error")[0].style.display = "none"
+    //         console.log("What is this?")
+    // }
+}
+
+const onConnectionLost = (res) => {
+    if (res.errorCode !== 0) {
+        console.log(`onConnectoinLost: ${res.errorMessagge}`)
+    }
+}
+
+const MQTTconnect = () => {
+    console.log("connecting to mqtt")
+    const options = {
+        timeout: 3,
+        onSuccess: onConnect,
+        onFailure: onFailure
+    }
+    client.onMessageArrived = onMessageArrived
+    client.onConnectionLost = onConnectionLost
+    client.connect(options)
+}
 
 
 //MQTTconnect() 
