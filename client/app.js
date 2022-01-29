@@ -1,7 +1,6 @@
 const express = require('express')
 const app = express()
 const detect = require('detect-port')
-
 app.use(express.static('public'))
 app.get('', (req, res) => {
     res.render('index.ejs')

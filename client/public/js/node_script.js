@@ -4,6 +4,7 @@ const id = uuidv4()
 const client = new mqtt.Client('127.0.0.1', 8000, id)
 const reconnectTimeout = 2000
 import Cookies from 'js-cookie'
+import axios from 'axios'
 
 const main = document.getElementById("main")
 const dashboard = document.getElementById("dashboard")
@@ -20,18 +21,37 @@ else {
     console.log("Nikt nie jest zalogowany")
 }
 
-function formSubmit() {
+async function formSubmit() {
+    Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
     const credentials = {
         login: main.getElementsByTagName("input")[0].value,
         password: main.getElementsByTagName("input")[1].value
     }
     main.getElementsByTagName("input")[0].value = ""
     main.getElementsByTagName("input")[1].value = ""
-    console.log(credentials)
-    client.send(`warships/${id}/server/user/login`, JSON.stringify(credentials))
+    axios.post("http://localhost:5000/users/login", credentials)
+    .then(res => {
+        main.style.display = "none"
+        dashboard.style.display = "block"
+        main.getElementsByClassName("error")[0].style.display = "none"
+        dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${credentials.login}`
+        console.log(window.location)
+        Cookies.set('user', credentials.login, { expires: 1 })
+    })
+    .catch(rej => {
+        if (rej.response.status == 401) {
+            main.getElementsByClassName("wrongcredentials")[0].style.display = "block"
+        }
+        else if (rej.response.status == 402) {
+            main.getElementsByClassName("loggedin")[0].style.display = "block"
+        }
+    })
+
 }
 
-function logout() {
+async function logout() {
+    Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
+    await axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
     Cookies.remove('user')
     logoutButton.parentElement.style.display = "none"
     main.style.display = "block"
@@ -78,62 +98,62 @@ registerButton.addEventListener("click", addUser, false)
 newUserButton.addEventListener("click", moveToRegiser, false)
 
 
-const onConnect = () => {
-    console.log("Connected, id:", id)
-    client.subscribe(`warships/${id}/response`)
-}
+// const onConnect = () => {
+//     console.log("Connected, id:", id)
+//     client.subscribe(`warships/${id}/response`)
+// }
 
-const onFailure = (msg) => {
-    console.log("Connection attempt to host 127.0.0.1 failed.")
-    setTimeout(MQTTconnect, reconnectTimeout)
-}
+// const onFailure = (msg) => {
+//     console.log("Connection attempt to host 127.0.0.1 failed.")
+//     setTimeout(MQTTconnect, reconnectTimeout)
+// }
 
-const onMessageArrived = (msg) => {
-    console.log(msg)
-    console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
-    const data = JSON.parse(msg.payloadString)
-    switch(data.response) {
-        case "LOGIN OK":
-            main.style.display = "none"
-            dashboard.style.display = "block"
-            main.getElementsByClassName("error")[0].style.display = "none"
-            dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${data.user}`
-            Cookies.set('user', data.user, { expires: 1 })
-            break;
+// const onMessageArrived = (msg) => {
+//     console.log(msg)
+//     console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
+//     const data = JSON.parse(msg.payloadString)
+//     switch(data.response) {
+//         case "LOGIN OK":
+//             main.style.display = "none"
+//             dashboard.style.display = "block"
+//             main.getElementsByClassName("error")[0].style.display = "none"
+//             dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${data.user}`
+//             Cookies.set('user', data.user, { expires: 1 })
+//             break;
 
-        case "AUTHENTICATION FAILED":
-            console.log("FAILED")
-            main.getElementsByClassName("error")[0].style.display = "block"
-            break;
+//         case "AUTHENTICATION FAILED":
+//             console.log("FAILED")
+//             main.getElementsByClassName("error")[0].style.display = "block"
+//             break;
 
-        case "LOGIN_DUPLICATE":
-            console.log("LOGIN_DUPLICATE")
-            register.getElementsByClassName("login").style.display = "block"
-            break;
+//         case "LOGIN_DUPLICATE":
+//             console.log("LOGIN_DUPLICATE")
+//             register.getElementsByClassName("login").style.display = "block"
+//             break;
 
-        default: 
-            main.getElementsByClassName("error")[0].style.display = "none"
-            console.log("What is this?")
-    }
-}
+//         default: 
+//             main.getElementsByClassName("error")[0].style.display = "none"
+//             console.log("What is this?")
+//     }
+// }
 
-const onConnectionLost = (res) => {
-    if (res.errorCode !== 0) {
-        console.log(`onConnectoinLost: ${res.errorMessagge}`)
-    }
-}
+// const onConnectionLost = (res) => {
+//     if (res.errorCode !== 0) {
+//         console.log(`onConnectoinLost: ${res.errorMessagge}`)
+//     }
+// }
 
-const MQTTconnect = () => {
-    console.log("connecting to mqtt")
-    const options = {
-        timeout: 3,
-        onSuccess: onConnect,
-        onFailure: onFailure
-    }
-    client.onMessageArrived = onMessageArrived
-    client.onConnectionLost = onConnectionLost
-    client.connect(options)
-}
+// const MQTTconnect = () => {
+//     console.log("connecting to mqtt")
+//     const options = {
+//         timeout: 3,
+//         onSuccess: onConnect,
+//         onFailure: onFailure
+//     }
+//     client.onMessageArrived = onMessageArrived
+//     client.onConnectionLost = onConnectionLost
+//     client.connect(options)
+// }
 
 
-MQTTconnect() 
+//MQTTconnect() 
