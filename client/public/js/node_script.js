@@ -228,17 +228,31 @@ const onMessageArrived = (msg) => {
                         // console.log($(".bottom").find(".points"))
                         $(".text").text(output.miss("You")); // wypisuje wiadomość o pudle 
                         $(".bottom").find(`.${content}`).children().addClass("miss"); // nadaje polu klasę "niewypału"
-                        client.send(`warships/${lobbyname}/game/${username}/miss`, "miss")
+                        client.send(`warships/${lobbyname}/game/${username}/miss`, content)
                     } else {
                         // console.log($(".bottom").find(".points"))
                         $(".bottom").find(`.${content}`).children().addClass("hit"); // nadaje polu klasę trafiony
-                        client.send(`warships/${lobbyname}/game/${username}/hit`, "hit")
+                        client.send(`warships/${lobbyname}/game/${username}/hit`, content)
+                    }
+                    if (playerFleet.ships.length == 0) {
+                        $(".bottom").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
+    
                     } 
                     $(".bottom").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
                     // ?? ^
                     break;
 
+                case "miss": 
+                    $(".top").find(`.${content}`).children().addClass("miss");
+                    $(".text").text(output.miss("You"));
+                    $(".top").find(`.${content}`).off("mouseenter").off("mouseover").off("mouseleave").off("click");
+                    break;
                 
+                case "hit": 
+                    $(".top").find(`.${content}`).children().addClass("hit");
+                    $(".text").text(output.hit("You"));
+                    $(".top").find(`.${content}`).off("mouseenter").off("mouseover").off("mouseleave").off("click");
+                    break;
             }
             // // Check if it's the end of the game
             // if (cpuFleet.ships.length == 0) {
@@ -371,16 +385,16 @@ var topBoard = {
                 const username = Cookies.get('user')
                 client.send(`warships/${lobbyname}/game/${username}/shot`, `${num}`)
 				//var bool = cpuFleet.checkIfHit(num); // sprawdza, czy w flocie przeciwnika jest trafienie ( MQTT )
-				if (false == bool) {
-					$(".text").text(output.miss("You")); // wypisuje wiadomość o pudle
-					$(this).children().addClass("miss"); // nadaje polu klasę "niewypału"
-				} else $(this).children().addClass("hit"); // nadaje polu klasę trafiony
-				$(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
-				// Check if it's the end of the game
-				if (cpuFleet.ships.length == 0) {
- 					$(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
+				// if (false == bool) {
+				// 	$(".text").text(output.miss("You")); // wypisuje wiadomość o pudle
+				// 	$(this).children().addClass("miss"); // nadaje polu klasę "niewypału"
+				// } else $(this).children().addClass("hit"); // nadaje polu klasę trafiony
+				// $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
+				// // Check if it's the end of the game
+				// if (cpuFleet.ships.length == 0) {
+ 				// 	$(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
 
- 				} else setTimeout(bot.select, 800);
+ 				// } else setTimeout(bot.select, 800);
 			} // end of if
 		});
 	},
