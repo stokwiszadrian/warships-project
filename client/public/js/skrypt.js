@@ -6618,20 +6618,27 @@ var onMessageArrived = function onMessageArrived(msg) {
           if (!bool) {
             // console.log($(".bottom").find(`.${content}`))
             // console.log($(".bottom").find(".points"))
-            $(".text").text(output.miss("You")); // wypisuje wiadomość o pudle 
+            $(".text").text(output.miss("Enemy")); // wypisuje wiadomość o pudle 
 
             $(".bottom").find(".".concat(content)).children().addClass("miss"); // nadaje polu klasę "niewypału"
 
             client.send("warships/".concat(lobbyname, "/game/").concat(username, "/miss"), content);
           } else {
             // console.log($(".bottom").find(".points"))
+            $(".text").text(output.hit("Your"));
             $(".bottom").find(".".concat(content)).children().addClass("hit"); // nadaje polu klasę trafiony
 
             client.send("warships/".concat(lobbyname, "/game/").concat(username, "/hit"), content);
           }
 
+          console.log(playerFleet.ships);
+
           if (playerFleet.ships.length == 0) {
-            $(".bottom").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
+            $(".text").text(output.lost);
+            $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
+
+            client.send("warships/".concat(lobbyname, "/game/").concat(username, "/end"), "end");
+            break;
           }
 
           $(".top").find(".points").off("mouseenter mouseover").on("mouseenter mouseover", function () {
@@ -6651,9 +6658,14 @@ var onMessageArrived = function onMessageArrived(msg) {
 
         case "hit":
           $(".top").find(".".concat(content)).children().addClass("hit");
-          $(".text").text(output.hit("You"));
+          $(".text").text(output.hit("Enemy"));
           $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
           break;
+
+        case "end":
+          $(".text").text(output.won);
+          $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
+        // usuwa atrybuty onclick itp ( pole wyłączone )
       } // // Check if it's the end of the game
       // if (cpuFleet.ships.length == 0) {
       //      $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
@@ -6726,10 +6738,6 @@ function Fleet(name) {
     // if (this == playerFleet) bot.sizeOfShipSunk = this.ships[pos].length;
 
     this.ships.splice(pos, 1); // usuwa element classy Ship z floty
-
-    if (this.ships.length == 0) {
-      $(".text").text(output.lost(this.name)); // jeśli nie ma statków, to ten gracz przegrywa
-    }
 
     return true;
   };
@@ -6810,9 +6818,8 @@ var output = {
   sunk: function sunk(user, type) {
     return " > " + user + "'s " + type + " was sunk!";
   },
-  lost: function lost(name) {
-    return " > " + name + " has lost his fleet!!  Game Over.";
-  }
+  "lost": " >You have lost your fleet.  You lost!",
+  "won": " >Enemy's fleet is sunk.  You won!"
 }; // Objects for playing the game and bot for playing the computer
 // plansza przeciwnika
 
@@ -6834,7 +6841,7 @@ var topBoard = {
 
         var username = _jsCookie["default"].get('user');
 
-        client.send("warships/".concat(lobbyname, "/game/").concat(username, "/shot"), "".concat(num)); //var bool = cpuFleet.checkIfHit(num); // sprawdza, czy w flocie przeciwnika jest trafienie ( MQTT )
+        client.send("warships/".concat(lobbyname, "/game/").concat(username, "/shot"), "".concat(num)); // var bool = cpuFleet.checkIfHit(num); // sprawdza, czy w flocie przeciwnika jest trafienie ( MQTT )
         // if (false == bool) {
         // 	$(".text").text(output.miss("You")); // wypisuje wiadomość o pudle
         // 	$(this).children().addClass("miss"); // nadaje polu klasę "niewypału"
