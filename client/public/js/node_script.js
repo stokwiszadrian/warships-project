@@ -169,8 +169,31 @@ const sendMsgHandler = () => {
     console.log("im here")
     const name = lobby.getElementsByClassName("lobbyname")[0].textContent
     const msg = lobby.getElementsByClassName("msg")[0].value
-    console.log(`warships/${name}/chat/${Cookies.get("user")}`)
-    client.send(`warships/${name}/chat/${Cookies.get("user")}`, msg)
+    console.log(`warships/${name}/chat/${Cookies.get("user")}/msg`)
+    client.send(`warships/${name}/chat/${Cookies.get("user")}/msg`, msg)
+}
+
+const leaveLobbyHandler = async () => {
+    const username = Cookies.get('user')
+    const name = lobby.getElementsByClassName("lobbyname")[0].textContent
+    axios.get(`http://localhost:5000/lobbies/checkowner/${username}`)
+    .then(res => {
+        console.log("Owner left")
+        axios.delete(`http://localhost:5000/lobbies/${username}`)
+        .then(res => {
+            client.send(`warships/${name}/chat/${username}/end`, "end")
+        })
+        .catch(rej => console.log(rej))
+    })
+    .catch(rej => {
+        console.log("user left")
+        lobby.style.display = "none"
+        board.style.display = "none"
+        dashboard.style.display = "block"
+        client.send(`warships/${name}/chat/${username}/dc`, "dc")
+        console.log(client.isConnected())
+        client.disconnect()
+    })
 }
 
 const loginButton = main.getElementsByClassName("submit")[0]
@@ -180,6 +203,8 @@ const registerButton = register.getElementsByClassName("submit")[0]
 const newLobbyButton = dashboard.getElementsByClassName("newlobby")[0]
 const joinLobbyButton = dashboard.getElementsByClassName("submit")[0]
 const sendMsgButton = lobby.getElementsByClassName("sendmsg")[0]
+const leaveLobbyButton = lobby.getElementsByClassName("leave")[0]
+
 
 sendMsgButton.addEventListener("click", sendMsgHandler, false)
 newLobbyButton.addEventListener("click", newLobbyHandler, false)
@@ -188,6 +213,7 @@ logoutButton.addEventListener("click", logout, false)
 registerButton.addEventListener("click", addUser, false)
 newUserButton.addEventListener("click", moveToRegister, false)
 joinLobbyButton.addEventListener("click", joinLobbyHandler, false)
+leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false)
 
 const onConnect = () => {
     const lobbyname = Cookies.get('lobby')
@@ -210,15 +236,41 @@ const onMessageArrived = (msg) => {
     const lobbyname = topic[1]
     const sender = topic[3]
     if (topic[2] == "chat"){
-        console.log(msg)
         const messagebox = lobby.getElementsByClassName("messagebox")[0]
-        console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
         const lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), -1)
         const newmsg = document.createElement('div')
-        const msgcontent = topic[4] == "connected" ? document.createTextNode(`${sender} has joined.`) : document.createTextNode(`${sender}: ${msg.payloadString}`)
-        newmsg.appendChild(msgcontent)
-        newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
-        lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+        let msgcontent = ""
+        switch (topic[4]) {
+            case "end":
+                lobby.style.display = "none"
+                board.style.display = "none"
+                dashboard.style.display = "block"
+                console.log("About to disconnect")
+                client.disconnect()
+                break;
+
+            case "msg":
+                msgcontent = document.createTextNode(`${sender}: ${msg.payloadString}`)
+                newmsg.appendChild(msgcontent)
+                newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
+                lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+                break;
+
+            case "dc": 
+                msgcontent =  document.createTextNode(`${sender} has left.`)
+                newmsg.appendChild(msgcontent)
+                newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
+                lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+                break;
+
+            case "connected":
+                msgcontent = document.createTextNode(`${sender} has joined.`)
+                newmsg.appendChild(msgcontent)
+                newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
+                lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+                break;
+        }
+
     }
     else {
         if (sender !== username) {
@@ -289,11 +341,10 @@ const onMessageArrived = (msg) => {
 }
 
 const onConnectionLost = (res) => {
+    console.log(res.errorCode)
     if (res.errorCode !== 0) {
         console.log(`onConnectoinLost: ${res.errorMessagge}`)
     }
-    const name = Cookies.get('lobby')
-    client.send(`warships/${name}/chat/${Cookies.get("user")}`, `disconnected`)
 
 }
 

@@ -28,7 +28,7 @@ client
     CREATE TABLE IF NOT EXISTS lobbies (
         id SERIAL PRIMARY KEY,
         owner VARCHAR(60) UNIQUE NOT NULL,
-        name VARCHAR(60) UNIQUE NOT NULL
+        name VARCHAR(60) NOT NULL
     )
   `);
 
