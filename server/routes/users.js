@@ -1,10 +1,12 @@
 const express = require("express");
 const client = require('../config/psqlClient');
 const router = express.Router({mergeParams: true});
+const crypto = require('crypto')
 
 router.post('/login', async (req, res) => {
     const data = req.body
-    const checkCredentials = await client.query("SELECT * FROM users WHERE login = $1 AND password = $2", [data.login, data.password])
+    const hash = crypto.createHash('sha256').update(data.password).digest('base64')
+    const checkCredentials = await client.query("SELECT * FROM users WHERE login = $1 AND password = $2", [data.login, hash])
     if (!checkCredentials.rows[0]) {
         return res.status(401).send("AUTHENTICATION_FAILED")
     }

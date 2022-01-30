@@ -3,6 +3,8 @@ const { v4: uuidv4 } = require('uuid')
 const id = uuidv4()
 const client = new mqtt.Client('127.0.0.1', 8000, id)
 const reconnectTimeout = 2000
+const crypto = require('crypto')
+
 import Cookies from 'js-cookie'
 import axios from 'axios'
 
@@ -87,9 +89,10 @@ async function addUser() {
         register.getElementsByClassName("inputs")[0].style.display = "block"
     }
     else if (pass1.value === pass2.value) {
+        const hash = crypto.createHash('sha256').update(pass1.value).digest('base64')
         const credentials = {
             login: login.value,
-            password: pass1.value
+            password: hash
         }
         axios.post("http://localhost:5000/users/newuser",credentials)
         .then(res => {
@@ -110,7 +113,7 @@ async function addUser() {
     }
 }
 
-function moveToRegiser() {
+function moveToRegister() {
     main.style.display = "none"
     register.style.display = "block"
 }
@@ -183,7 +186,7 @@ newLobbyButton.addEventListener("click", newLobbyHandler, false)
 loginButton.addEventListener("click", formSubmit, false)
 logoutButton.addEventListener("click", logout, false)
 registerButton.addEventListener("click", addUser, false)
-newUserButton.addEventListener("click", moveToRegiser, false)
+newUserButton.addEventListener("click", moveToRegister, false)
 joinLobbyButton.addEventListener("click", joinLobbyHandler, false)
 
 const onConnect = () => {
