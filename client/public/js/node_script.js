@@ -221,6 +221,7 @@ const onMessageArrived = (msg) => {
         if (sender !== username) {
             switch (topic[4]) {
                 case "shot":
+                    const shipnum = playerFleet.ships.length
                     const bool = playerFleet.checkIfHit(parseInt(content))
                     console.log(bool)
                     if (!bool) {
@@ -234,6 +235,10 @@ const onMessageArrived = (msg) => {
                         $(".text").text(output.hit("Your"))
                         $(".bottom").find(`.${content}`).children().addClass("hit"); // nadaje polu klasę trafiony
                         client.send(`warships/${lobbyname}/game/${username}/hit`, content)
+                        if (shipnum > playerFleet.ships.length) {
+                            client.send(`warships/${lobbyname}/game/${username}/sunk`, "sunk")
+                            $(".text").text(output.sunk("Your"))
+                        }
                     }
                     console.log(playerFleet.ships)
                     if (playerFleet.ships.length == 0) {
@@ -259,8 +264,12 @@ const onMessageArrived = (msg) => {
                 
                 case "hit": 
                     $(".top").find(`.${content}`).children().addClass("hit");
-                    $(".text").text(output.hit("Enemy"));
+                    $(".text").text(output.hit("Enemy's"));
                     $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
+                    break;
+
+                case "sunk":
+                    $(".text").text(output.sunk("Enemy's"))
                     break;
 
                 case "end":
@@ -316,8 +325,6 @@ function Fleet(name) {
 	};
 	this.removeShip = function(pos) {
 		this.numOfShips--; // usuwa statek z floty
-		$(".text").text(output.sunk(this.name, this.ships[pos].name)); // wiadomość - dany statek danego gracza ( name ) zatopiony
-		// if (this == playerFleet) bot.sizeOfShipSunk = this.ships[pos].length;
 		this.ships.splice(pos, 1); // usuwa element classy Ship z floty
 		return true;
 	};
@@ -372,9 +379,9 @@ var output = {
 	"overlap": " > You can not overlap ships.  Please try again.",
 	"start": " > Use the mouse to fire on the top grid.  Good Luck!",
 	placed: function(name) { return " > Your " + name + " been placed."; },
-	hit: function(name, type) { return " > " + name + "'s ship was hit." },
+	hit: function(name, type) { return " > " + name + " ship was hit." },
 	miss: function(name) { return " > " + name + " missed!" },
-	sunk: function(user, type) { return " > " + user + "'s " + type + " was sunk!" },
+	sunk: function(user, type) { return " > " + user + " ship was sunk!" },
 	"lost": " >You have lost your fleet.  You lost!",
     "won": " >Enemy's fleet is sunk.  You won!"
 };

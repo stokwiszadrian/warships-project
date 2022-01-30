@@ -6612,6 +6612,7 @@ var onMessageArrived = function onMessageArrived(msg) {
     if (sender !== username) {
       switch (topic[4]) {
         case "shot":
+          var shipnum = playerFleet.ships.length;
           var bool = playerFleet.checkIfHit(parseInt(content));
           console.log(bool);
 
@@ -6629,6 +6630,11 @@ var onMessageArrived = function onMessageArrived(msg) {
             $(".bottom").find(".".concat(content)).children().addClass("hit"); // nadaje polu klasę trafiony
 
             client.send("warships/".concat(lobbyname, "/game/").concat(username, "/hit"), content);
+
+            if (shipnum > playerFleet.ships.length) {
+              client.send("warships/".concat(lobbyname, "/game/").concat(username, "/sunk"), "sunk");
+              $(".text").text(output.sunk("Your"));
+            }
           }
 
           console.log(playerFleet.ships);
@@ -6658,8 +6664,12 @@ var onMessageArrived = function onMessageArrived(msg) {
 
         case "hit":
           $(".top").find(".".concat(content)).children().addClass("hit");
-          $(".text").text(output.hit("Enemy"));
+          $(".text").text(output.hit("Enemy's"));
           $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
+          break;
+
+        case "sunk":
+          $(".text").text(output.sunk("Enemy's"));
           break;
 
         case "end":
@@ -6734,9 +6744,6 @@ function Fleet(name) {
   this.removeShip = function (pos) {
     this.numOfShips--; // usuwa statek z floty
 
-    $(".text").text(output.sunk(this.name, this.ships[pos].name)); // wiadomość - dany statek danego gracza ( name ) zatopiony
-    // if (this == playerFleet) bot.sizeOfShipSunk = this.ships[pos].length;
-
     this.ships.splice(pos, 1); // usuwa element classy Ship z floty
 
     return true;
@@ -6810,13 +6817,13 @@ var output = {
     return " > Your " + name + " been placed.";
   },
   hit: function hit(name, type) {
-    return " > " + name + "'s ship was hit.";
+    return " > " + name + " ship was hit.";
   },
   miss: function miss(name) {
     return " > " + name + " missed!";
   },
   sunk: function sunk(user, type) {
-    return " > " + user + "'s " + type + " was sunk!";
+    return " > " + user + " ship was sunk!";
   },
   "lost": " >You have lost your fleet.  You lost!",
   "won": " >Enemy's fleet is sunk.  You won!"
