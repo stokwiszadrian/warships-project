@@ -6634,7 +6634,11 @@ var onMessageArrived = function onMessageArrived(msg) {
             $(".bottom").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
           }
 
-          $(".bottom").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
+          $(".top").find(".points").off("mouseenter mouseover").on("mouseenter mouseover", function () {
+            // only allow target highlight on none attempts
+            console.log(this);
+            if (!$(this).hasClass("used")) topBoard.highlight(this);
+          }); // usuwa atrybuty onclick itp ( pole wyłączone )
           // ?? ^
 
           break;
@@ -6642,13 +6646,13 @@ var onMessageArrived = function onMessageArrived(msg) {
         case "miss":
           $(".top").find(".".concat(content)).children().addClass("miss");
           $(".text").text(output.miss("You"));
-          $(".top").find(".".concat(content)).off("mouseenter").off("mouseover").off("mouseleave").off("click");
+          $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
           break;
 
         case "hit":
           $(".top").find(".".concat(content)).children().addClass("hit");
           $(".text").text(output.hit("You"));
-          $(".top").find(".".concat(content)).off("mouseenter").off("mouseover").off("mouseleave").off("click");
+          $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
           break;
       } // // Check if it's the end of the game
       // if (cpuFleet.ships.length == 0) {
