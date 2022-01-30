@@ -6294,10 +6294,11 @@ var _require = require('uuid'),
 var id = uuidv4();
 var client = new mqtt.Client('127.0.0.1', 8000, id);
 var reconnectTimeout = 2000;
-var main = document.getElementById("main");
+var main = document.getElementById("mainlogin");
 var dashboard = document.getElementById("dashboard");
 var register = document.getElementById("register");
 var lobby = document.getElementById("lobby");
+var board = document.getElementById("main");
 
 if (_jsCookie["default"].get('user')) {
   main.style.display = "none";
@@ -6309,16 +6310,35 @@ if (_jsCookie["default"].get('user')) {
   console.log("Nikt nie jest zalogowany");
 }
 
+if (_jsCookie["default"].get('lobby')) {
+  _axios["default"].get("http://localhost:5000/lobbies/".concat(_jsCookie["default"].get('lobby'))).then(function (res) {
+    dashboard.style.display = "none";
+    lobby.getElementsByClassName("lobbyname")[0].textContent = _jsCookie["default"].get('lobby');
+    lobby.style.display = "block";
+    board.style.display = "block";
+    var options = {
+      timeout: 3,
+      onSuccess: onConnect,
+      onFailure: onFailure
+    };
+    MQTTconnect(options);
+  })["catch"](function (rej) {
+    console.log("Pokój już nie istnieje");
+
+    _jsCookie["default"].remove('lobby');
+  });
+}
+
 function formSubmit() {
   return _formSubmit.apply(this, arguments);
 }
 
 function _formSubmit() {
-  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
+  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee() {
     var credentials;
-    return _regenerator["default"].wrap(function _callee2$(_context2) {
+    return _regenerator["default"].wrap(function _callee$(_context) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context.prev = _context.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -6349,10 +6369,10 @@ function _formSubmit() {
 
           case 5:
           case "end":
-            return _context2.stop();
+            return _context.stop();
         }
       }
-    }, _callee2);
+    }, _callee);
   }));
   return _formSubmit.apply(this, arguments);
 }
@@ -6362,15 +6382,15 @@ function logout() {
 }
 
 function _logout() {
-  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
+  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
+    return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context2.prev = _context2.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
             });
-            _context3.next = 3;
+            _context2.next = 3;
             return _axios["default"].patch("http://localhost:5000/users/logout", {
               login: _jsCookie["default"].get('user')
             });
@@ -6383,10 +6403,10 @@ function _logout() {
 
           case 6:
           case "end":
-            return _context3.stop();
+            return _context2.stop();
         }
       }
-    }, _callee3);
+    }, _callee2);
   }));
   return _logout.apply(this, arguments);
 }
@@ -6396,11 +6416,11 @@ function addUser() {
 }
 
 function _addUser() {
-  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4() {
+  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
     var login, pass1, pass2, credentials;
-    return _regenerator["default"].wrap(function _callee4$(_context4) {
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -6434,10 +6454,10 @@ function _addUser() {
 
           case 5:
           case "end":
-            return _context4.stop();
+            return _context3.stop();
         }
       }
-    }, _callee4);
+    }, _callee3);
   }));
   return _addUser.apply(this, arguments);
 }
@@ -6452,10 +6472,10 @@ function newLobbyHandler() {
 }
 
 function _newLobbyHandler() {
-  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
+  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4() {
+    return _regenerator["default"].wrap(function _callee4$(_context4) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context4.prev = _context4.next) {
           case 0:
             _axios["default"].post("http://localhost:5000/lobbies/newlobby", {
               owner: _jsCookie["default"].get('user'),
@@ -6465,6 +6485,7 @@ function _newLobbyHandler() {
 
               dashboard.style.display = "none";
               lobby.style.display = "block";
+              board.style.display = "block";
               lobby.getElementsByClassName("lobbyname")[0].textContent = "".concat(_jsCookie["default"].get('user'), "'s game");
               var options = {
                 timeout: 3,
@@ -6479,10 +6500,10 @@ function _newLobbyHandler() {
 
           case 1:
           case "end":
-            return _context5.stop();
+            return _context4.stop();
         }
       }
-    }, _callee5);
+    }, _callee4);
   }));
   return _newLobbyHandler.apply(this, arguments);
 }
@@ -6492,21 +6513,25 @@ function joinLobbyHandler() {
 }
 
 function _joinLobbyHandler() {
-  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6() {
+  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
     var name;
-    return _regenerator["default"].wrap(function _callee6$(_context6) {
+    return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             name = dashboard.getElementsByTagName("input")[0].value;
 
             _axios["default"].get("http://localhost:5000/lobbies/".concat(name)).then(function (res) {
+              _jsCookie["default"].set('lobby', name);
+
+              console.log(res, "niby się udało");
               lobby.getElementsByClassName("lobbyname")[0].textContent = name;
               dashboard.style.display = "none";
               lobby.style.display = "block";
+              board.style.display = "block";
               var options = {
                 timeout: 3,
-                onSuccess: joiningConnect,
+                onSuccess: onConnect,
                 onFailure: onFailure
               };
               MQTTconnect(options);
@@ -6517,13 +6542,21 @@ function _joinLobbyHandler() {
 
           case 2:
           case "end":
-            return _context6.stop();
+            return _context5.stop();
         }
       }
-    }, _callee6);
+    }, _callee5);
   }));
   return _joinLobbyHandler.apply(this, arguments);
 }
+
+var sendMsgHandler = function sendMsgHandler() {
+  console.log("im here");
+  var name = lobby.getElementsByClassName("lobbyname")[0].textContent;
+  var msg = lobby.getElementsByClassName("msg")[0].value;
+  console.log("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user")));
+  client.send("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user")), msg);
+};
 
 var loginButton = main.getElementsByClassName("submit")[0];
 var newUserButton = main.getElementsByClassName("register")[0];
@@ -6531,6 +6564,8 @@ var logoutButton = dashboard.getElementsByClassName("logout")[0];
 var registerButton = register.getElementsByClassName("submit")[0];
 var newLobbyButton = dashboard.getElementsByClassName("newlobby")[0];
 var joinLobbyButton = dashboard.getElementsByClassName("submit")[0];
+var sendMsgButton = lobby.getElementsByClassName("sendmsg")[0];
+sendMsgButton.addEventListener("click", sendMsgHandler, false);
 newLobbyButton.addEventListener("click", newLobbyHandler, false);
 loginButton.addEventListener("click", formSubmit, false);
 logoutButton.addEventListener("click", logout, false);
@@ -6538,37 +6573,15 @@ registerButton.addEventListener("click", addUser, false);
 newUserButton.addEventListener("click", moveToRegiser, false);
 joinLobbyButton.addEventListener("click", joinLobbyHandler, false);
 
-var joiningConnect = /*#__PURE__*/function () {
-  var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee() {
-    var name;
-    return _regenerator["default"].wrap(function _callee$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            name = dashboard.getElementsByTagName("input")[0].value;
-            console.log("Connected, id:", id);
-            client.subscribe("warships/".concat(name, "/chat/#"));
-            client.subscribe("warships/".concat(name, "/game/#"));
-
-          case 4:
-          case "end":
-            return _context.stop();
-        }
-      }
-    }, _callee);
-  }));
-
-  return function joiningConnect() {
-    return _ref.apply(this, arguments);
-  };
-}();
-
 var onConnect = function onConnect() {
-  var name = _jsCookie["default"].get('lobby');
+  var lobbyname = _jsCookie["default"].get('lobby');
 
-  console.log("Connected, id:", id);
-  client.subscribe("warships/".concat(name, "/chat/#"));
-  client.subscribe("warships/".concat(name, "/game/#"));
+  var username = _jsCookie["default"].get('user');
+
+  console.log("Connected, id:", lobbyname, username);
+  client.send("warships/".concat(lobbyname, "/chat/").concat(username, "/connected"), "connected");
+  client.subscribe("warships/".concat(lobbyname, "/chat/#"));
+  client.subscribe("warships/".concat(lobbyname, "/game/#"));
 };
 
 var onFailure = function onFailure(msg) {
@@ -6577,13 +6590,14 @@ var onFailure = function onFailure(msg) {
 };
 
 var onMessageArrived = function onMessageArrived(msg) {
-  var sender = msg.destinationName.split("/")[3];
+  var topic = msg.destinationName.split("/");
+  var sender = topic[3];
   console.log(msg);
   var messagebox = lobby.getElementsByClassName("messagebox")[0];
   console.log("Received a message from ".concat(msg.destinationName, ": ").concat(msg.payloadString));
   var lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), -1);
   var newmsg = document.createElement('div');
-  var msgcontent = document.createTextNode("".concat(sender, ": ").concat(msg.payloadString));
+  var msgcontent = topic[4] == "connected" ? document.createTextNode("".concat(sender, " has joined.")) : document.createTextNode("".concat(sender, ": ").concat(msg.payloadString));
   newmsg.appendChild(msgcontent);
   newmsg.setAttribute('class', "message ".concat(lobby.getElementsByClassName("message").length + 1));
   lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
@@ -6593,6 +6607,10 @@ var onConnectionLost = function onConnectionLost(res) {
   if (res.errorCode !== 0) {
     console.log("onConnectoinLost: ".concat(res.errorMessagge));
   }
+
+  var name = _jsCookie["default"].get('lobby');
+
+  client.send("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user")), "disconnected");
 };
 
 var MQTTconnect = function MQTTconnect(options) {

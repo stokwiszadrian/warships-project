@@ -6,10 +6,11 @@ const reconnectTimeout = 2000
 import Cookies from 'js-cookie'
 import axios from 'axios'
 
-const main = document.getElementById("main")
+const main = document.getElementById("mainlogin")
 const dashboard = document.getElementById("dashboard")
 const register = document.getElementById("register")
 const lobby = document.getElementById("lobby")
+const board = document.getElementById("main")
 
 if (Cookies.get('user')) {
     main.style.display = "none"
@@ -20,6 +21,26 @@ if (Cookies.get('user')) {
 }
 else {
     console.log("Nikt nie jest zalogowany")
+}
+
+if (Cookies.get('lobby')) {
+    axios.get(`http://localhost:5000/lobbies/${Cookies.get('lobby')}`)
+    .then(res => {
+        dashboard.style.display = "none"
+        lobby.getElementsByClassName("lobbyname")[0].textContent = Cookies.get('lobby')
+        lobby.style.display = "block"
+        board.style.display = "block"
+        const options = {
+            timeout: 3,
+            onSuccess: onConnect,
+            onFailure: onFailure
+        }
+        MQTTconnect(options)
+    })
+    .catch(rej => {
+        console.log("Pokój już nie istnieje")
+        Cookies.remove('lobby')
+    })
 }
 
 async function formSubmit() {
@@ -103,6 +124,7 @@ async function newLobbyHandler() {
         Cookies.set('lobby', `${Cookies.get('user')}'s game`)
         dashboard.style.display = "none"
         lobby.style.display = "block"
+        board.style.display = "block"
         lobby.getElementsByClassName("lobbyname")[0].textContent = `${Cookies.get('user')}'s game`
         const options = {
             timeout: 3,
@@ -121,12 +143,15 @@ async function joinLobbyHandler() {
     const name = dashboard.getElementsByTagName("input")[0].value
     axios.get(`http://localhost:5000/lobbies/${name}`)
     .then(res => {
+        Cookies.set('lobby', name)
+        console.log(res, "niby się udało")
         lobby.getElementsByClassName("lobbyname")[0].textContent = name
         dashboard.style.display = "none"
         lobby.style.display = "block"
+        board.style.display = "block"
         const options = {
             timeout: 3,
-            onSuccess: joiningConnect,
+            onSuccess: onConnect,
             onFailure: onFailure
         }
         MQTTconnect(options)
@@ -137,12 +162,23 @@ async function joinLobbyHandler() {
     })
 }
 
+const sendMsgHandler = () => {
+    console.log("im here")
+    const name = lobby.getElementsByClassName("lobbyname")[0].textContent
+    const msg = lobby.getElementsByClassName("msg")[0].value
+    console.log(`warships/${name}/chat/${Cookies.get("user")}`)
+    client.send(`warships/${name}/chat/${Cookies.get("user")}`, msg)
+}
+
 const loginButton = main.getElementsByClassName("submit")[0]
 const newUserButton = main.getElementsByClassName("register")[0]
 const logoutButton = dashboard.getElementsByClassName("logout")[0]
 const registerButton = register.getElementsByClassName("submit")[0]
 const newLobbyButton = dashboard.getElementsByClassName("newlobby")[0]
 const joinLobbyButton = dashboard.getElementsByClassName("submit")[0]
+const sendMsgButton = lobby.getElementsByClassName("sendmsg")[0]
+
+sendMsgButton.addEventListener("click", sendMsgHandler, false)
 newLobbyButton.addEventListener("click", newLobbyHandler, false)
 loginButton.addEventListener("click", formSubmit, false)
 logoutButton.addEventListener("click", logout, false)
@@ -150,18 +186,13 @@ registerButton.addEventListener("click", addUser, false)
 newUserButton.addEventListener("click", moveToRegiser, false)
 joinLobbyButton.addEventListener("click", joinLobbyHandler, false)
 
-const joiningConnect = async () => {
-    const name = dashboard.getElementsByTagName("input")[0].value
-    console.log("Connected, id:", id)
-    client.subscribe(`warships/${name}/chat/#`)
-    client.subscribe(`warships/${name}/game/#`)
-}
-
 const onConnect = () => {
-    const name = Cookies.get('lobby')
-    console.log("Connected, id:", id)
-    client.subscribe(`warships/${name}/chat/#`)
-    client.subscribe(`warships/${name}/game/#`)
+    const lobbyname = Cookies.get('lobby')
+    const username = Cookies.get('user')
+    console.log("Connected, id:", lobbyname, username)
+    client.send(`warships/${lobbyname}/chat/${username}/connected`, "connected")
+    client.subscribe(`warships/${lobbyname}/chat/#`)
+    client.subscribe(`warships/${lobbyname}/game/#`)
 }
 
 const onFailure = (msg) => {
@@ -170,13 +201,14 @@ const onFailure = (msg) => {
 }
 
 const onMessageArrived = (msg) => {
-    const sender = msg.destinationName.split("/")[3]
+    const topic = msg.destinationName.split("/")
+    const sender = topic[3]
     console.log(msg)
     const messagebox = lobby.getElementsByClassName("messagebox")[0]
     console.log(`Received a message from ${msg.destinationName}: ${msg.payloadString}`)
     const lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), -1)
     const newmsg = document.createElement('div')
-    const msgcontent = document.createTextNode(`${sender}: ${msg.payloadString}`)
+    const msgcontent = topic[4] == "connected" ? document.createTextNode(`${sender} has joined.`) : document.createTextNode(`${sender}: ${msg.payloadString}`)
     newmsg.appendChild(msgcontent)
     newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
     lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
@@ -186,6 +218,8 @@ const onConnectionLost = (res) => {
     if (res.errorCode !== 0) {
         console.log(`onConnectoinLost: ${res.errorMessagge}`)
     }
+    const name = Cookies.get('lobby')
+    client.send(`warships/${name}/chat/${Cookies.get("user")}`, `disconnected`)
 
 }
 
