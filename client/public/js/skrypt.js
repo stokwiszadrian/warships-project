@@ -32744,12 +32744,106 @@ var register = document.getElementById("register");
 var lobby = document.getElementById("lobby");
 var board = document.getElementById("main");
 
-if (_jsCookie["default"].get('user')) {
-  main.style.display = "none";
-  dashboard.style.display = "block";
-  main.getElementsByClassName("error")[0].style.display = "none";
-  dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
-  console.log(_jsCookie["default"].get('user'));
+function onUnload() {
+  return _onUnload.apply(this, arguments);
+}
+
+function _onUnload() {
+  _onUnload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
+      while (1) {
+        switch (_context3.prev = _context3.next) {
+          case 0:
+            if (!_jsCookie["default"].get('user')) {
+              _context3.next = 4;
+              break;
+            }
+
+            _context3.next = 3;
+            return _axios["default"].patch("http://localhost:5000/users/logout", {
+              login: _jsCookie["default"].get('user')
+            });
+
+          case 3:
+            console.log("logout prompt send in");
+
+          case 4:
+            return _context3.abrupt("return", null);
+
+          case 5:
+          case "end":
+            return _context3.stop();
+        }
+      }
+    }, _callee3);
+  }));
+  return _onUnload.apply(this, arguments);
+}
+
+window.addEventListener("beforeunload", onUnload, false);
+
+function rnd256() {
+  var bytes = new Uint8Array(32);
+  window.crypto.getRandomValues(bytes);
+  var bytesHex = bytes.reduce(function (o, v) {
+    return o + ('00' + v.toString(16)).slice(-2);
+  }, ''); // convert hexademical value to a decimal string
+
+  return BigInt('0x' + bytesHex).toString(10);
+}
+
+console.log(rnd256().length);
+
+if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
+  _axios["default"].get("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth'))).then( /*#__PURE__*/function () {
+    var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(res) {
+      return _regenerator["default"].wrap(function _callee$(_context) {
+        while (1) {
+          switch (_context.prev = _context.next) {
+            case 0:
+              main.style.display = "none";
+              dashboard.style.display = "block";
+              main.getElementsByClassName("error")[0].style.display = "none";
+              dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
+              console.log(_jsCookie["default"].get('user'));
+              _context.next = 7;
+              return _axios["default"]["delete"]("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth')));
+
+            case 7:
+              _jsCookie["default"].set('user', _jsCookie["default"].get('user'), {
+                expires: 7
+              });
+
+              _jsCookie["default"].set('auth', rnd256(), {
+                expires: 7
+              });
+
+              _context.next = 11;
+              return _axios["default"].post('http://localhost:5000/cookieauth', {
+                user: _jsCookie["default"].get('user'),
+                authnum: _jsCookie["default"].get('auth')
+              });
+
+            case 11:
+              _context.next = 13;
+              return _axios["default"].patch("http://localhost:5000/users/login", {
+                login: _jsCookie["default"].get('user')
+              });
+
+            case 13:
+            case "end":
+              return _context.stop();
+          }
+        }
+      }, _callee);
+    }));
+
+    return function (_x) {
+      return _ref.apply(this, arguments);
+    };
+  }())["catch"](function (rej) {
+    console.log(rej.response);
+  });
 } else {
   console.log("Nikt nie jest zalogowany");
 }
@@ -32778,11 +32872,11 @@ function formSubmit() {
 }
 
 function _formSubmit() {
-  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
+  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
     var credentials;
-    return _regenerator["default"].wrap(function _callee2$(_context2) {
+    return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -32794,16 +32888,43 @@ function _formSubmit() {
             main.getElementsByTagName("input")[0].value = "";
             main.getElementsByTagName("input")[1].value = "";
 
-            _axios["default"].post("http://localhost:5000/users/login", credentials).then(function (res) {
-              main.style.display = "none";
-              dashboard.style.display = "block";
-              main.getElementsByClassName("error")[0].style.display = "none";
-              dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
+            _axios["default"].post("http://localhost:5000/users/login", credentials).then( /*#__PURE__*/function () {
+              var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(res) {
+                return _regenerator["default"].wrap(function _callee4$(_context4) {
+                  while (1) {
+                    switch (_context4.prev = _context4.next) {
+                      case 0:
+                        main.style.display = "none";
+                        dashboard.style.display = "block";
+                        main.getElementsByClassName("error")[0].style.display = "none";
+                        dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
 
-              _jsCookie["default"].set('user', credentials.login, {
-                expires: 14
-              });
-            })["catch"](function (rej) {
+                        _jsCookie["default"].set('user', credentials.login, {
+                          expires: 7
+                        });
+
+                        _jsCookie["default"].set('auth', rnd256(), {
+                          expires: 7
+                        });
+
+                        _context4.next = 8;
+                        return _axios["default"].post("http://localhost:5000/cookieauth", {
+                          user: _jsCookie["default"].get('user'),
+                          authnum: _jsCookie["default"].get('auth')
+                        });
+
+                      case 8:
+                      case "end":
+                        return _context4.stop();
+                    }
+                  }
+                }, _callee4);
+              }));
+
+              return function (_x2) {
+                return _ref3.apply(this, arguments);
+              };
+            }())["catch"](function (rej) {
               if (rej.response.status == 401) {
                 main.getElementsByClassName("wrongcredentials")[0].style.display = "block";
               } else if (rej.response.status == 402) {
@@ -32813,10 +32934,10 @@ function _formSubmit() {
 
           case 5:
           case "end":
-            return _context2.stop();
+            return _context5.stop();
         }
       }
-    }, _callee2);
+    }, _callee5);
   }));
   return _formSubmit.apply(this, arguments);
 }
@@ -32826,31 +32947,37 @@ function logout() {
 }
 
 function _logout() {
-  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
+  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6() {
+    return _regenerator["default"].wrap(function _callee6$(_context6) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context6.prev = _context6.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
             });
-            _context3.next = 3;
+            _context6.next = 3;
             return _axios["default"].patch("http://localhost:5000/users/logout", {
               login: _jsCookie["default"].get('user')
             });
 
           case 3:
+            _context6.next = 5;
+            return _axios["default"]["delete"]("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth')));
+
+          case 5:
             _jsCookie["default"].remove('user');
+
+            _jsCookie["default"].remove('auth');
 
             logoutButton.parentElement.style.display = "none";
             main.style.display = "block";
 
-          case 6:
+          case 9:
           case "end":
-            return _context3.stop();
+            return _context6.stop();
         }
       }
-    }, _callee3);
+    }, _callee6);
   }));
   return _logout.apply(this, arguments);
 }
@@ -32860,11 +32987,11 @@ function addUser() {
 }
 
 function _addUser() {
-  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4() {
+  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7() {
     var login, pass1, pass2, hash, credentials;
-    return _regenerator["default"].wrap(function _callee4$(_context4) {
+    return _regenerator["default"].wrap(function _callee7$(_context7) {
       while (1) {
-        switch (_context4.prev = _context4.next) {
+        switch (_context7.prev = _context7.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -32899,10 +33026,10 @@ function _addUser() {
 
           case 5:
           case "end":
-            return _context4.stop();
+            return _context7.stop();
         }
       }
-    }, _callee4);
+    }, _callee7);
   }));
   return _addUser.apply(this, arguments);
 }
@@ -32917,10 +33044,10 @@ function newLobbyHandler() {
 }
 
 function _newLobbyHandler() {
-  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
+  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8() {
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
             _axios["default"].post("http://localhost:5000/lobbies/newlobby", {
               owner: _jsCookie["default"].get('user'),
@@ -32946,10 +33073,10 @@ function _newLobbyHandler() {
 
           case 1:
           case "end":
-            return _context5.stop();
+            return _context8.stop();
         }
       }
-    }, _callee5);
+    }, _callee8);
   }));
   return _newLobbyHandler.apply(this, arguments);
 }
@@ -32959,11 +33086,11 @@ function joinLobbyHandler() {
 }
 
 function _joinLobbyHandler() {
-  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6() {
+  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9() {
     var name;
-    return _regenerator["default"].wrap(function _callee6$(_context6) {
+    return _regenerator["default"].wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
             name = dashboard.getElementsByTagName("input")[0].value;
 
@@ -32988,10 +33115,10 @@ function _joinLobbyHandler() {
 
           case 2:
           case "end":
-            return _context6.stop();
+            return _context9.stop();
         }
       }
-    }, _callee6);
+    }, _callee9);
   }));
   return _joinLobbyHandler.apply(this, arguments);
 }
@@ -33006,11 +33133,11 @@ var sendMsgHandler = function sendMsgHandler() {
 };
 
 var leaveLobbyHandler = /*#__PURE__*/function () {
-  var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee() {
+  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
     var username, name;
-    return _regenerator["default"].wrap(function _callee$(_context) {
+    return _regenerator["default"].wrap(function _callee2$(_context2) {
       while (1) {
-        switch (_context.prev = _context.next) {
+        switch (_context2.prev = _context2.next) {
           case 0:
             username = _jsCookie["default"].get('user');
             name = lobby.getElementsByClassName("lobbyname")[0].textContent;
@@ -33039,14 +33166,14 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
 
           case 4:
           case "end":
-            return _context.stop();
+            return _context2.stop();
         }
       }
-    }, _callee);
+    }, _callee2);
   }));
 
   return function leaveLobbyHandler() {
-    return _ref.apply(this, arguments);
+    return _ref2.apply(this, arguments);
   };
 }(); // function reload() {
 // 	const head = document.getElementsByTagName('head')[0]
@@ -33123,8 +33250,8 @@ var onMessageArrived = function onMessageArrived(msg) {
         window.location.reload(true);
         lobby.style.display = "none";
         board.style.display = "none";
-        dashboard.style.display = "block";
-        console.log("About to disconnect");
+        alert("Session ended by host");
+        dashboard.getElementsByClassName("sessionend")[0].style.display = "block";
 
         _jsCookie["default"].remove("lobby");
 

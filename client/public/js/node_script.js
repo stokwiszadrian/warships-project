@@ -14,12 +14,47 @@ const register = document.getElementById("register")
 const lobby = document.getElementById("lobby")
 const board = document.getElementById("main")
 
-if (Cookies.get('user')) {
-    main.style.display = "none"
-    dashboard.style.display = "block"
-    main.getElementsByClassName("error")[0].style.display = "none"
-    dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${Cookies.get('user')}`
-    console.log(Cookies.get('user'))
+async function onUnload() {
+	if (Cookies.get('user')){
+		await axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
+		console.log("logout prompt send in")
+	}
+	return null;
+}
+
+window.addEventListener("beforeunload", onUnload, false)
+
+function rnd256() {
+	const bytes = new Uint8Array(32)
+	window.crypto.getRandomValues(bytes)
+	const bytesHex = bytes.reduce((o, v) => o + ('00' + v.toString(16)).slice(-2), '');
+  
+	// convert hexademical value to a decimal string
+	return BigInt('0x' + bytesHex).toString(10);
+  }
+
+console.log(rnd256().length)  
+
+if (Cookies.get('user') && Cookies.get('auth')) {
+	axios.get(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
+	.then(async res => {
+		main.style.display = "none"
+		dashboard.style.display = "block"
+		main.getElementsByClassName("error")[0].style.display = "none"
+		dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${Cookies.get('user')}`
+		console.log(Cookies.get('user'))
+		await axios.delete(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
+		Cookies.set('user', Cookies.get('user'), { expires: 7 })
+		Cookies.set('auth', rnd256(), { expires: 7 })
+		await axios.post('http://localhost:5000/cookieauth', {
+			user: Cookies.get('user'),
+			authnum: Cookies.get('auth')
+		})
+		await axios.patch("http://localhost:5000/users/login", { login: Cookies.get('user') })
+	})
+	.catch(rej => {
+		console.log(rej.response)
+	})
 }
 else {
     console.log("Nikt nie jest zalogowany")
@@ -54,12 +89,17 @@ async function formSubmit() {
     main.getElementsByTagName("input")[0].value = ""
     main.getElementsByTagName("input")[1].value = ""
     axios.post("http://localhost:5000/users/login", credentials)
-    .then(res => {
+    .then(async res => {
         main.style.display = "none"
         dashboard.style.display = "block"
         main.getElementsByClassName("error")[0].style.display = "none"
         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${credentials.login}`
-        Cookies.set('user', credentials.login, { expires: 14 })
+        Cookies.set('user', credentials.login, { expires: 7 })
+		Cookies.set('auth', rnd256(), { expires: 7 })
+		await axios.post("http://localhost:5000/cookieauth", {
+			user: Cookies.get('user'),
+			authnum: Cookies.get('auth')
+		})
     })
     .catch(rej => {
         if (rej.response.status == 401) {
@@ -75,7 +115,9 @@ async function formSubmit() {
 async function logout() {
     Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
     await axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
+	await axios.delete(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
     Cookies.remove('user')
+	Cookies.remove('auth')
     logoutButton.parentElement.style.display = "none"
     main.style.display = "block"
 }
@@ -272,8 +314,8 @@ const onMessageArrived = (msg) => {
 				window.location.reload(true)
                 lobby.style.display = "none"
                 board.style.display = "none"
-                dashboard.style.display = "block"
-                console.log("About to disconnect")
+				alert("Session ended by host")
+				dashboard.getElementsByClassName("sessionend")[0].style.display = "block"
 				Cookies.remove("lobby")
                 client.disconnect()
                 break;

@@ -6,12 +6,14 @@ const cors = require('cors')
 const express = require('express')
 const users = require("./routes/users")
 const lobbies = require("./routes/lobbies")
+const cookieauth = require("./routes/cookieauth")
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 app.use("/users", users)
 app.use("/lobbies", lobbies)
+app.use("/cookieauth", cookieauth)
 
 client
 .connect()
@@ -29,7 +31,13 @@ client
         id SERIAL PRIMARY KEY,
         owner VARCHAR(60) UNIQUE NOT NULL,
         name VARCHAR(60) NOT NULL
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS cookieauth (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(60) NOT NULL,
+      authnum VARCHAR(80) NOT NULL
+    );
   `);
 
   const port = 5000
