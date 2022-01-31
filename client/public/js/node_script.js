@@ -135,6 +135,8 @@ async function newLobbyHandler() {
             onFailure: onFailure
         }
         MQTTconnect(options)
+		//document.getElementById("lobby").loc
+		//$("#lobby").load(window.location.href + " #lobby")
     })
     .catch(rej => {
         dashboard.getElementsByClassName("nonewlobby")[0].style.display = "block"
@@ -146,18 +148,19 @@ async function joinLobbyHandler() {
     const name = dashboard.getElementsByTagName("input")[0].value
     axios.get(`http://localhost:5000/lobbies/${name}`)
     .then(res => {
-        Cookies.set('lobby', name)
+        Cookies.set('lobby', res.data.name)
         console.log(res, "niby się udało")
-        lobby.getElementsByClassName("lobbyname")[0].textContent = name
+        lobby.getElementsByClassName("lobbyname")[0].textContent = res.data.name
         dashboard.style.display = "none"
         lobby.style.display = "block"
         board.style.display = "block"
         const options = {
             timeout: 3,
-            onSuccess: onConnect,
+            onSuccess: onJoin,
             onFailure: onFailure
         }
         MQTTconnect(options)
+		// window.location.reload()
     })
     .catch(rej => {
         dashboard.getElementsByClassName("nojoinlobby")[0].style.display = "block"
@@ -171,17 +174,20 @@ const sendMsgHandler = () => {
     const msg = lobby.getElementsByClassName("msg")[0].value
     console.log(`warships/${name}/chat/${Cookies.get("user")}/msg`)
     client.send(`warships/${name}/chat/${Cookies.get("user")}/msg`, msg)
+	lobby.getElementsByClassName("msg")[0].value = ""
 }
 
 const leaveLobbyHandler = async () => {
     const username = Cookies.get('user')
     const name = lobby.getElementsByClassName("lobbyname")[0].textContent
+	Cookies.remove('lobby')
     axios.get(`http://localhost:5000/lobbies/checkowner/${username}`)
     .then(res => {
         console.log("Owner left")
         axios.delete(`http://localhost:5000/lobbies/${username}`)
         .then(res => {
             client.send(`warships/${name}/chat/${username}/end`, "end")
+			window.location.reload()
         })
         .catch(rej => console.log(rej))
     })
@@ -193,8 +199,19 @@ const leaveLobbyHandler = async () => {
         client.send(`warships/${name}/chat/${username}/dc`, "dc")
         console.log(client.isConnected())
         client.disconnect()
+		window.location.reload()
     })
 }
+
+// function reload() {
+// 	const head = document.getElementsByTagName('head')[0]
+// 	const script = document.createElement('script')
+// 	script.src = "js/skrypt.js"  
+// 	script.defer = true
+// 	script.type = "module"
+// 	head.appendChild(script)
+// 	console.log("reloading?")
+//   }
 
 const loginButton = main.getElementsByClassName("submit")[0]
 const newUserButton = main.getElementsByClassName("register")[0]
@@ -215,11 +232,20 @@ newUserButton.addEventListener("click", moveToRegister, false)
 joinLobbyButton.addEventListener("click", joinLobbyHandler, false)
 leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false)
 
+
+const onJoin = () => {
+	const lobbyname = Cookies.get('lobby')
+	const username = Cookies.get('user')
+	console.log("Connected, id:", lobbyname, username)
+	client.subscribe(`warships/${lobbyname}/chat/#`)
+	client.subscribe(`warships/${lobbyname}/game/#`)
+	client.send(`warships/${lobbyname}/chat/${username}/connected`, "connected")
+}
+
 const onConnect = () => {
     const lobbyname = Cookies.get('lobby')
     const username = Cookies.get('user')
     console.log("Connected, id:", lobbyname, username)
-    client.send(`warships/${lobbyname}/chat/${username}/connected`, "connected")
     client.subscribe(`warships/${lobbyname}/chat/#`)
     client.subscribe(`warships/${lobbyname}/game/#`)
 }
@@ -230,6 +256,7 @@ const onFailure = (msg) => {
 }
 
 const onMessageArrived = (msg) => {
+	console.log(msg.destinationName, msg.payloadString)
     const topic = msg.destinationName.split("/")
     const username = Cookies.get('user')
     const content = msg.payloadString
@@ -246,6 +273,7 @@ const onMessageArrived = (msg) => {
                 board.style.display = "none"
                 dashboard.style.display = "block"
                 console.log("About to disconnect")
+				Cookies.remove("lobby")
                 client.disconnect()
                 break;
 
@@ -257,10 +285,11 @@ const onMessageArrived = (msg) => {
                 break;
 
             case "dc": 
+				lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+				window.location.reload(true)
                 msgcontent =  document.createTextNode(`${sender} has left.`)
                 newmsg.appendChild(msgcontent)
                 newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
-                lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
                 break;
 
             case "connected":
@@ -268,7 +297,17 @@ const onMessageArrived = (msg) => {
                 newmsg.appendChild(msgcontent)
                 newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
                 lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+				client.send(`warships/${lobbyname}/chat/${username}/full`, "full")
                 break;
+
+			case "full":
+				$(".text").text(output.welcome)
+				$(document).ready(function() {
+					$(".one").on("click", function() {
+						$(".text").text(output.player1); // singleplayer ? zmien na "rozpocznij układanie"
+						gameSetup(this);
+					});
+				});
         }
 
     }
@@ -426,6 +465,7 @@ function Ship(name){
 
 // wiadomości
 var output = {
+	"wait": " > Waiting for an opponent...",
 	"welcome": " > Welcome to BattleShip.  Use the menu above to get started.",
 	"not": " > This option is not currently available.",
 	"player1": " > Would you like to place your own ships or have the computer randomly do it for you?",
@@ -517,6 +557,7 @@ var bottomBoard = {
 }
 
 //  Create the games grids and layout
+
 $(document).ready(function() {
 	for (var i = 1; i <= 100; i++) {
 		// The number and letter designators
@@ -538,17 +579,11 @@ $(document).ready(function() {
 								String.fromCharCode(97 + (i - 91)).toUpperCase() + "</span>");
 		}
 	}
-	$(".text").text(output.welcome); // przywitanie
+	$(".text").text(output.wait); // przywitanie
 })
 
 // Start the game setup
 // tutaj jest menu - być może niepotrzebne?
-$(document).ready(function() {
-	$(".one").on("click", function() {
-		$(".text").text(output.player1); // singleplayer ? zmien na "rozpocznij układanie"
-		gameSetup(this);
-	});
-});
 
 // wybór układania
 function gameSetup(t) {

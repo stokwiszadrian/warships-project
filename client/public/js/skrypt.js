@@ -32937,7 +32937,8 @@ function _newLobbyHandler() {
                 onSuccess: onConnect,
                 onFailure: onFailure
               };
-              MQTTconnect(options);
+              MQTTconnect(options); //document.getElementById("lobby").loc
+              //$("#lobby").load(window.location.href + " #lobby")
             })["catch"](function (rej) {
               dashboard.getElementsByClassName("nonewlobby")[0].style.display = "block";
               console.log(rej.response);
@@ -32967,19 +32968,19 @@ function _joinLobbyHandler() {
             name = dashboard.getElementsByTagName("input")[0].value;
 
             _axios["default"].get("http://localhost:5000/lobbies/".concat(name)).then(function (res) {
-              _jsCookie["default"].set('lobby', name);
+              _jsCookie["default"].set('lobby', res.data.name);
 
               console.log(res, "niby się udało");
-              lobby.getElementsByClassName("lobbyname")[0].textContent = name;
+              lobby.getElementsByClassName("lobbyname")[0].textContent = res.data.name;
               dashboard.style.display = "none";
               lobby.style.display = "block";
               board.style.display = "block";
               var options = {
                 timeout: 3,
-                onSuccess: onConnect,
+                onSuccess: onJoin,
                 onFailure: onFailure
               };
-              MQTTconnect(options);
+              MQTTconnect(options); // window.location.reload()
             })["catch"](function (rej) {
               dashboard.getElementsByClassName("nojoinlobby")[0].style.display = "block";
               console.log(rej.response);
@@ -33001,6 +33002,7 @@ var sendMsgHandler = function sendMsgHandler() {
   var msg = lobby.getElementsByClassName("msg")[0].value;
   console.log("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user"), "/msg"));
   client.send("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user"), "/msg"), msg);
+  lobby.getElementsByClassName("msg")[0].value = "";
 };
 
 var leaveLobbyHandler = /*#__PURE__*/function () {
@@ -33013,11 +33015,14 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
             username = _jsCookie["default"].get('user');
             name = lobby.getElementsByClassName("lobbyname")[0].textContent;
 
+            _jsCookie["default"].remove('lobby');
+
             _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(username)).then(function (res) {
               console.log("Owner left");
 
               _axios["default"]["delete"]("http://localhost:5000/lobbies/".concat(username)).then(function (res) {
                 client.send("warships/".concat(name, "/chat/").concat(username, "/end"), "end");
+                window.location.reload();
               })["catch"](function (rej) {
                 return console.log(rej);
               });
@@ -33029,9 +33034,10 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
               client.send("warships/".concat(name, "/chat/").concat(username, "/dc"), "dc");
               console.log(client.isConnected());
               client.disconnect();
+              window.location.reload();
             });
 
-          case 3:
+          case 4:
           case "end":
             return _context.stop();
         }
@@ -33042,7 +33048,16 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
   return function leaveLobbyHandler() {
     return _ref.apply(this, arguments);
   };
-}();
+}(); // function reload() {
+// 	const head = document.getElementsByTagName('head')[0]
+// 	const script = document.createElement('script')
+// 	script.src = "js/skrypt.js"  
+// 	script.defer = true
+// 	script.type = "module"
+// 	head.appendChild(script)
+// 	console.log("reloading?")
+//   }
+
 
 var loginButton = main.getElementsByClassName("submit")[0];
 var newUserButton = main.getElementsByClassName("register")[0];
@@ -33061,13 +33076,23 @@ newUserButton.addEventListener("click", moveToRegister, false);
 joinLobbyButton.addEventListener("click", joinLobbyHandler, false);
 leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false);
 
+var onJoin = function onJoin() {
+  var lobbyname = _jsCookie["default"].get('lobby');
+
+  var username = _jsCookie["default"].get('user');
+
+  console.log("Connected, id:", lobbyname, username);
+  client.subscribe("warships/".concat(lobbyname, "/chat/#"));
+  client.subscribe("warships/".concat(lobbyname, "/game/#"));
+  client.send("warships/".concat(lobbyname, "/chat/").concat(username, "/connected"), "connected");
+};
+
 var onConnect = function onConnect() {
   var lobbyname = _jsCookie["default"].get('lobby');
 
   var username = _jsCookie["default"].get('user');
 
   console.log("Connected, id:", lobbyname, username);
-  client.send("warships/".concat(lobbyname, "/chat/").concat(username, "/connected"), "connected");
   client.subscribe("warships/".concat(lobbyname, "/chat/#"));
   client.subscribe("warships/".concat(lobbyname, "/game/#"));
 };
@@ -33078,6 +33103,7 @@ var onFailure = function onFailure(msg) {
 };
 
 var onMessageArrived = function onMessageArrived(msg) {
+  console.log(msg.destinationName, msg.payloadString);
   var topic = msg.destinationName.split("/");
 
   var username = _jsCookie["default"].get('user');
@@ -33098,6 +33124,9 @@ var onMessageArrived = function onMessageArrived(msg) {
         board.style.display = "none";
         dashboard.style.display = "block";
         console.log("About to disconnect");
+
+        _jsCookie["default"].remove("lobby");
+
         client.disconnect();
         break;
 
@@ -33109,10 +33138,11 @@ var onMessageArrived = function onMessageArrived(msg) {
         break;
 
       case "dc":
+        lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
+        window.location.reload(true);
         msgcontent = document.createTextNode("".concat(sender, " has left."));
         newmsg.appendChild(msgcontent);
         newmsg.setAttribute('class', "message ".concat(lobby.getElementsByClassName("message").length + 1));
-        lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
         break;
 
       case "connected":
@@ -33120,7 +33150,18 @@ var onMessageArrived = function onMessageArrived(msg) {
         newmsg.appendChild(msgcontent);
         newmsg.setAttribute('class', "message ".concat(lobby.getElementsByClassName("message").length + 1));
         lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
+        client.send("warships/".concat(lobbyname, "/chat/").concat(username, "/full"), "full");
         break;
+
+      case "full":
+        $(".text").text(output.welcome);
+        $(document).ready(function () {
+          $(".one").on("click", function () {
+            $(".text").text(output.player1); // singleplayer ? zmien na "rozpocznij układanie"
+
+            gameSetup(this);
+          });
+        });
     }
   } else {
     if (sender !== username) {
@@ -33319,6 +33360,7 @@ function Ship(name) {
 
 
 var output = {
+  "wait": " > Waiting for an opponent...",
   "welcome": " > Welcome to BattleShip.  Use the menu above to get started.",
   "not": " > This option is not currently available.",
   "player1": " > Would you like to place your own ships or have the computer randomly do it for you?",
@@ -33455,17 +33497,10 @@ $(document).ready(function () {
     }
   }
 
-  $(".text").text(output.welcome); // przywitanie
+  $(".text").text(output.wait); // przywitanie
 }); // Start the game setup
 // tutaj jest menu - być może niepotrzebne?
-
-$(document).ready(function () {
-  $(".one").on("click", function () {
-    $(".text").text(output.player1); // singleplayer ? zmien na "rozpocznij układanie"
-
-    gameSetup(this);
-  });
-}); // wybór układania
+// wybór układania
 
 function gameSetup(t) {
   $(t).off() && $(".two").off();
