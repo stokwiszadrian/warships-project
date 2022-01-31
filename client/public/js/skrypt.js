@@ -33120,6 +33120,7 @@ var onMessageArrived = function onMessageArrived(msg) {
 
     switch (topic[4]) {
       case "end":
+        window.location.reload(true);
         lobby.style.display = "none";
         board.style.display = "none";
         dashboard.style.display = "block";
@@ -33138,11 +33139,11 @@ var onMessageArrived = function onMessageArrived(msg) {
         break;
 
       case "dc":
-        lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
         window.location.reload(true);
         msgcontent = document.createTextNode("".concat(sender, " has left."));
         newmsg.appendChild(msgcontent);
         newmsg.setAttribute('class', "message ".concat(lobby.getElementsByClassName("message").length + 1));
+        lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
         break;
 
       case "connected":
@@ -33505,7 +33506,8 @@ $(document).ready(function () {
 function gameSetup(t) {
   $(t).off() && $(".two").off();
   $(".one").addClass("self").removeClass("one").text("Place My Own");
-  $(".multi").addClass("random").removeClass("multi").text("Random");
+  $(".multi").addClass("random").removeClass("multi").text("Random"); // lobby.getElementsByClassName("one").style.display = "block"
+
   $(".self").off("click").on("click", function () {
     $(".text").text(output.self);
     selfSetup(playerFleet);

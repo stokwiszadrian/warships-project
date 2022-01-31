@@ -269,6 +269,7 @@ const onMessageArrived = (msg) => {
         let msgcontent = ""
         switch (topic[4]) {
             case "end":
+				window.location.reload(true)
                 lobby.style.display = "none"
                 board.style.display = "none"
                 dashboard.style.display = "block"
@@ -285,12 +286,12 @@ const onMessageArrived = (msg) => {
                 break;
 
             case "dc": 
-				lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
 				window.location.reload(true)
                 msgcontent =  document.createTextNode(`${sender} has left.`)
                 newmsg.appendChild(msgcontent)
                 newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
-                break;
+                lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+				break;
 
             case "connected":
                 msgcontent = document.createTextNode(`${sender} has joined.`)
@@ -590,7 +591,7 @@ function gameSetup(t) {
 	$(t).off() && $(".two").off();
 	$(".one").addClass("self").removeClass("one").text("Place My Own");
 	$(".multi").addClass("random").removeClass("multi").text("Random");
-
+	// lobby.getElementsByClassName("one").style.display = "block"
 	$(".self").off("click").on("click", function() {
 		$(".text").text(output.self);
 		selfSetup(playerFleet); 

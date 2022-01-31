@@ -203,15 +203,16 @@ html {
 	background: rgba(100,100,100,0.7);
 }
 
-.one {
 
+.multi {
+	display: none;
 }
 
 .self {
 }
 
 .random {
-
+	display: block;
 }
 
 .error {
