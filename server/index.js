@@ -37,7 +37,7 @@ client
     CREATE TABLE IF NOT EXISTS cookieauth (
       id SERIAL PRIMARY KEY,
       username VARCHAR(60) NOT NULL,
-      authnum VARCHAR(80) NOT NULL
+      authnum VARCHAR(85) NOT NULL
     );
   `);
 

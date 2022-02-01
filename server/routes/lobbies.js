@@ -31,8 +31,17 @@ router.get("/checkowner/:owner", async (req, res) => {
 })
 
 router.get("/:lobbyname", async (req, res) => {
-    const checkName = await client.query("SELECT * FROM lobbies WHERE name LIKE $1", [ `%${req.params.lobbyname}%` ])
-    return checkName.rows[0] ? res.send(checkName.rows[0]) : res.sendStatus(500)
+    const checkName = await client.query("SELECT * FROM lobbies WHERE name = $1", [ req.params.lobbyname ])
+    if (checkName.rows[0]) {
+        return checkName.rows[0].closed ? res.sendStatus(500) : res.send(checkName.rows[0])
+    }
+    return res.sendStatus(500)
+})
+
+router.get("/lobbyfilter/:filter", async (req, res) => {
+    console.log("FILTER", req.params.filter)
+    const filtered = await client.query("SELECT * FROM lobbies WHERE name LIKE $1", [ `%${req.params.filter}%` ])
+    return res.send(filtered.rows)
 })
 
 router.delete("/:owner", async (req, res) => {

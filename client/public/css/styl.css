@@ -1,6 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
+
 body {
     margin: 0;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    font-family: 'Pirata One', cursive;
+    background-color: aqua;
+}
+
+#mainlogin {
+    border: 1px solid brown;
+    width: 50%;
+    display: grid;
+    background-color: white;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    justify-items: center;
+    padding: 10px;
+    height: 100%;
+}
+
+#mainlogin .title {
+    font-size: 6em;
+    grid-column: 1 / 4;
+    justify-content: center;
+    margin: 0;
+}
+
+#mainlogin .loginfo {
+    font-size: 3em;
+    grid-column: 1;
+    display: block;
+    width: 40%;
+}
+
+#mainlogin input {
+    height: 2em;
+    grid-column: 2;
+    width: 100%;
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    padding: 5px;
+}
+
+#mainlogin button {
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    height: auto;
+    padding: 5px;
+    width: 100%;
+}
+
+
+
+#mainlogin form {
+    display: inline-block;
 }
 
 #dashboard {
@@ -13,6 +68,10 @@ body {
 
 #lobby {
     display: none;
+}
+
+#settings {
+    display: none
 }
 
 .error {

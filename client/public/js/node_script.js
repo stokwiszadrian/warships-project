@@ -13,6 +13,7 @@ const dashboard = document.getElementById("dashboard")
 const register = document.getElementById("register")
 const lobby = document.getElementById("lobby")
 const board = document.getElementById("main")
+const settings = document.getElementById("settings")
 
 function onUnload() {
 	if (Cookies.get('user')){
@@ -67,7 +68,8 @@ if (Cookies.get('user') && Cookies.get('auth')) {
 		dashboard.style.display = "block"
 		main.getElementsByClassName("error")[0].style.display = "none"
 		dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${Cookies.get('user')}`
-		lobbyListGenerate()
+		const lobbies = (await axios.get("http://localhost:5000/lobbies")).data
+		lobbyListGenerate(lobbies)
 		console.log(Cookies.get('user'))
 		await axios.delete(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
 		Cookies.set('user', Cookies.get('user'), { expires: 7 })
@@ -117,7 +119,7 @@ if (Cookies.get('lobby')) {
     })
 }
 
-async function lobbyListGenerate() {
+async function lobbyListGenerate(lobbies) {
 	const lobbylist = dashboard.getElementsByClassName("lobbylist")[0]
 		while (lobbylist.firstChild) {
 			lobbylist.removeChild(lobbylist.firstChild)
@@ -125,7 +127,6 @@ async function lobbyListGenerate() {
 		const firstentry = document.createElement('div')
 		firstentry.className = 'lobbylisting entry'
 		lobbylist.appendChild(firstentry)
-		const lobbies = (await axios.get("http://localhost:5000/lobbies")).data
 		console.log(lobbies)
 		lobbies.forEach(lobbylisting => {
 			if (!lobbylisting.closed) {
@@ -139,7 +140,7 @@ async function lobbyListGenerate() {
 				const joinbutton = document.createElement('button')
 				joinbutton.type = 'button'
 				joinbutton.textContent = 'join'
-				joinbutton.addEventListener('click', () => console.log(joinbutton.parentElement.className), false)
+				joinbutton.addEventListener('click', () => joinLobbyHandler(lobbylisting.name), false)
 				newlobby.appendChild(lobbyname)
 				newlobby.appendChild(lobbyowner)
 				newlobby.appendChild(joinbutton)
@@ -152,7 +153,7 @@ async function formSubmit() {
     Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
     const credentials = {
         login: main.getElementsByTagName("input")[0].value,
-        password: main.getElementsByTagName("input")[1].value
+        password: crypto.createHash('sha256').update(main.getElementsByTagName("input")[1].value).digest('base64')
     }
     main.getElementsByTagName("input")[0].value = ""
     main.getElementsByTagName("input")[1].value = ""
@@ -162,7 +163,8 @@ async function formSubmit() {
         dashboard.style.display = "block"
         main.getElementsByClassName("error")[0].style.display = "none"
         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${credentials.login}`
-		lobbyListGenerate()
+		const lobbies = (await axios.get("http://localhost:5000/lobbies")).data
+		lobbyListGenerate(lobbies)
         Cookies.set('user', credentials.login, { expires: 7 })
 		Cookies.set('auth', rnd256(), { expires: 7 })
 		await axios.post("http://localhost:5000/cookieauth", {
@@ -257,8 +259,8 @@ async function newLobbyHandler() {
     })
 }
 
-async function joinLobbyHandler() {
-    const name = dashboard.getElementsByTagName("input")[0].value
+async function joinLobbyHandler(name) {
+    // const name = dashboard.getElementsByTagName("input")[0].value
     axios.get(`http://localhost:5000/lobbies/${name}`)
     .then(async res => {
         Cookies.set('lobby', res.data.name)
@@ -319,6 +321,7 @@ const leaveLobbyHandler = async () => {
 }
 
 async function changeLobbyNameHandler() {
+	Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
 	const oldname = Cookies.get("lobby")
 	const newname = lobby.getElementsByClassName("newname")[0].value
 	axios.patch("http://localhost:5000/lobbies/newname", {
@@ -343,16 +346,90 @@ async function changeLobbyNameHandler() {
 // 	console.log("reloading?")
 //   }
 
+async function filterLobbies() {
+	const name = dashboard.getElementsByTagName("input")[0].value
+	if (name !== ""){
+		const lobbies = (await axios.get(`http://localhost:5000/lobbies/lobbyfilter/${name}`)).data
+		lobbyListGenerate(lobbies)
+	} else {
+		const lobbies = (await axios.get(`http://localhost:5000/lobbies`)).data
+		lobbyListGenerate(lobbies)
+	}
+}
+
+function settingsHandler() {
+	dashboard.style.display = "none"
+	board.style.display = "none"
+	settings.style.display = "block"
+}
+
+function returnHandler() {
+	settings.style.display = "none"
+	dashboard.style.display = "block"
+}
+
+async function changeNameHandler() {
+	Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
+	const newname = settings.getElementsByClassName("name")[0].value
+	console.log(newname)
+	axios.patch("http://localhost:5000/users/changename", {
+		oldname: Cookies.get('user'),
+		newname: newname
+	})
+	.then(res => {
+		Cookies.set('user', newname, { expires: 7})
+		window.location.reload()
+	})
+	.catch(rej => {
+		console.log(rej)
+		console.log(settings.getElementsByClassName("login")[0])
+		settings.getElementsByClassName("login")[0].style.display = "block"
+	})
+}
+
+async function changePassHandler() {
+	Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
+	const username = Cookies.get('user')
+	const oldpass = settings.getElementsByClassName("oldpass")[0].value
+	const newpass1 = settings.getElementsByClassName("newpass1")[0].value
+	const newpass2 = settings.getElementsByClassName("newpass2")[0].value
+	console.log(oldpass)
+	if (newpass1 !== newpass2) {
+		settings.getElementsByClassName("wrongpass")[0].style.display = "block"
+	}
+	else {
+		axios.patch(`http://localhost:5000/users/changepass/${username}`, {
+			oldpass: crypto.createHash('sha256').update(oldpass).digest('base64'),
+			newpass: crypto.createHash('sha256').update(newpass1).digest('base64')
+		})
+		.then(res => {
+			window.location.reload()
+		})
+		.catch(rej => {
+			console.log(rej)
+			settings.getElementsByClassName("authfail")[0].style.display = "block"
+		})
+	}
+}
+
 const loginButton = main.getElementsByClassName("submit")[0]
 const newUserButton = main.getElementsByClassName("register")[0]
 const logoutButton = dashboard.getElementsByClassName("logout")[0]
 const registerButton = register.getElementsByClassName("submit")[0]
 const newLobbyButton = dashboard.getElementsByClassName("newlobby")[0]
-const joinLobbyButton = dashboard.getElementsByClassName("submit")[0]
+const searchLobbyButton = dashboard.getElementsByClassName("submit")[0]
 const sendMsgButton = lobby.getElementsByClassName("sendmsg")[0]
 const leaveLobbyButton = lobby.getElementsByClassName("leave")[0]
 const changeLobbyNameButton = lobby.getElementsByClassName("setnewname")[0]
+const accountsettingsbutton = dashboard.getElementsByClassName("settings")[0]
+const settingsreturnbutton = settings.getElementsByClassName("settingsreturn")[0]
+const settingsnamebutton = settings.getElementsByClassName("changename")[0]
+const settingspassbutton = settings.getElementsByClassName("changepass")[0]
 
+settingsnamebutton.addEventListener("click", changeNameHandler, false)
+settingspassbutton.addEventListener("click", changePassHandler, false)
+settingsreturnbutton.addEventListener("click", returnHandler, false)
+accountsettingsbutton.addEventListener("click", settingsHandler, false)
 changeLobbyNameButton.addEventListener("click", changeLobbyNameHandler, false)
 sendMsgButton.addEventListener("click", sendMsgHandler, false)
 newLobbyButton.addEventListener("click", newLobbyHandler, false)
@@ -360,7 +437,7 @@ loginButton.addEventListener("click", formSubmit, false)
 logoutButton.addEventListener("click", logout, false)
 registerButton.addEventListener("click", addUser, false)
 newUserButton.addEventListener("click", moveToRegister, false)
-joinLobbyButton.addEventListener("click", joinLobbyHandler, false)
+searchLobbyButton.addEventListener("click", filterLobbies, false)
 leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false)
 
 

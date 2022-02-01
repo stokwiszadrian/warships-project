@@ -32743,6 +32743,7 @@ var dashboard = document.getElementById("dashboard");
 var register = document.getElementById("register");
 var lobby = document.getElementById("lobby");
 var board = document.getElementById("main");
+var settings = document.getElementById("settings");
 
 function onUnload() {
   if (_jsCookie["default"].get('user')) {
@@ -32795,6 +32796,7 @@ console.log(rnd256().length);
 if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
   _axios["default"].get("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth'))).then( /*#__PURE__*/function () {
     var _ref = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee(res) {
+      var lobbies;
       return _regenerator["default"].wrap(function _callee$(_context) {
         while (1) {
           switch (_context.prev = _context.next) {
@@ -32803,12 +32805,17 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
               dashboard.style.display = "block";
               main.getElementsByClassName("error")[0].style.display = "none";
               dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
-              lobbyListGenerate();
+              _context.next = 6;
+              return _axios["default"].get("http://localhost:5000/lobbies");
+
+            case 6:
+              lobbies = _context.sent.data;
+              lobbyListGenerate(lobbies);
               console.log(_jsCookie["default"].get('user'));
-              _context.next = 8;
+              _context.next = 11;
               return _axios["default"]["delete"]("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth')));
 
-            case 8:
+            case 11:
               _jsCookie["default"].set('user', _jsCookie["default"].get('user'), {
                 expires: 7
               });
@@ -32817,19 +32824,19 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
                 expires: 7
               });
 
-              _context.next = 12;
+              _context.next = 15;
               return _axios["default"].post('http://localhost:5000/cookieauth', {
                 user: _jsCookie["default"].get('user'),
                 authnum: _jsCookie["default"].get('auth')
               });
 
-            case 12:
-              _context.next = 14;
+            case 15:
+              _context.next = 17;
               return _axios["default"].patch("http://localhost:5000/users/login", {
                 login: _jsCookie["default"].get('user')
               });
 
-            case 14:
+            case 17:
             case "end":
               return _context.stop();
           }
@@ -32893,13 +32900,13 @@ if (_jsCookie["default"].get('lobby')) {
   });
 }
 
-function lobbyListGenerate() {
+function lobbyListGenerate(_x3) {
   return _lobbyListGenerate.apply(this, arguments);
 }
 
 function _lobbyListGenerate() {
-  _lobbyListGenerate = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6() {
-    var lobbylist, firstentry, lobbies;
+  _lobbyListGenerate = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(lobbies) {
+    var lobbylist, firstentry;
     return _regenerator["default"].wrap(function _callee6$(_context6) {
       while (1) {
         switch (_context6.prev = _context6.next) {
@@ -32913,11 +32920,6 @@ function _lobbyListGenerate() {
             firstentry = document.createElement('div');
             firstentry.className = 'lobbylisting entry';
             lobbylist.appendChild(firstentry);
-            _context6.next = 7;
-            return _axios["default"].get("http://localhost:5000/lobbies");
-
-          case 7:
-            lobbies = _context6.sent.data;
             console.log(lobbies);
             lobbies.forEach(function (lobbylisting) {
               if (!lobbylisting.closed) {
@@ -32932,7 +32934,7 @@ function _lobbyListGenerate() {
                 joinbutton.type = 'button';
                 joinbutton.textContent = 'join';
                 joinbutton.addEventListener('click', function () {
-                  return console.log(joinbutton.parentElement.className);
+                  return joinLobbyHandler(lobbylisting.name);
                 }, false);
                 newlobby.appendChild(lobbyname);
                 newlobby.appendChild(lobbyowner);
@@ -32941,7 +32943,7 @@ function _lobbyListGenerate() {
               }
             });
 
-          case 10:
+          case 7:
           case "end":
             return _context6.stop();
         }
@@ -32967,13 +32969,14 @@ function _formSubmit() {
             });
             credentials = {
               login: main.getElementsByTagName("input")[0].value,
-              password: main.getElementsByTagName("input")[1].value
+              password: crypto.createHash('sha256').update(main.getElementsByTagName("input")[1].value).digest('base64')
             };
             main.getElementsByTagName("input")[0].value = "";
             main.getElementsByTagName("input")[1].value = "";
 
             _axios["default"].post("http://localhost:5000/users/login", credentials).then( /*#__PURE__*/function () {
               var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(res) {
+                var lobbies;
                 return _regenerator["default"].wrap(function _callee7$(_context7) {
                   while (1) {
                     switch (_context7.prev = _context7.next) {
@@ -32982,7 +32985,12 @@ function _formSubmit() {
                         dashboard.style.display = "block";
                         main.getElementsByClassName("error")[0].style.display = "none";
                         dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
-                        lobbyListGenerate();
+                        _context7.next = 6;
+                        return _axios["default"].get("http://localhost:5000/lobbies");
+
+                      case 6:
+                        lobbies = _context7.sent.data;
+                        lobbyListGenerate(lobbies);
 
                         _jsCookie["default"].set('user', credentials.login, {
                           expires: 7
@@ -32992,13 +33000,13 @@ function _formSubmit() {
                           expires: 7
                         });
 
-                        _context7.next = 9;
+                        _context7.next = 12;
                         return _axios["default"].post("http://localhost:5000/cookieauth", {
                           user: _jsCookie["default"].get('user'),
                           authnum: _jsCookie["default"].get('auth')
                         });
 
-                      case 9:
+                      case 12:
                       case "end":
                         return _context7.stop();
                     }
@@ -33006,7 +33014,7 @@ function _formSubmit() {
                 }, _callee7);
               }));
 
-              return function (_x5) {
+              return function (_x7) {
                 return _ref6.apply(this, arguments);
               };
             }())["catch"](function (rej) {
@@ -33168,19 +33176,17 @@ function _newLobbyHandler() {
   return _newLobbyHandler.apply(this, arguments);
 }
 
-function joinLobbyHandler() {
+function joinLobbyHandler(_x4) {
   return _joinLobbyHandler.apply(this, arguments);
 }
 
 function _joinLobbyHandler() {
-  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13() {
-    var name;
+  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13(name) {
     return _regenerator["default"].wrap(function _callee13$(_context13) {
       while (1) {
         switch (_context13.prev = _context13.next) {
           case 0:
-            name = dashboard.getElementsByTagName("input")[0].value;
-
+            // const name = dashboard.getElementsByTagName("input")[0].value
             _axios["default"].get("http://localhost:5000/lobbies/".concat(name)).then( /*#__PURE__*/function () {
               var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(res) {
                 var options;
@@ -33216,7 +33222,7 @@ function _joinLobbyHandler() {
                 }, _callee12);
               }));
 
-              return function (_x6) {
+              return function (_x8) {
                 return _ref7.apply(this, arguments);
               };
             }())["catch"](function (rej) {
@@ -33224,7 +33230,7 @@ function _joinLobbyHandler() {
               console.log(rej.response);
             });
 
-          case 2:
+          case 1:
           case "end":
             return _context13.stop();
         }
@@ -33278,7 +33284,7 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
                 }, _callee3);
               }));
 
-              return function (_x3) {
+              return function (_x5) {
                 return _ref4.apply(this, arguments);
               };
             }())["catch"]( /*#__PURE__*/function () {
@@ -33310,7 +33316,7 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
                 }, _callee4);
               }));
 
-              return function (_x4) {
+              return function (_x6) {
                 return _ref5.apply(this, arguments);
               };
             }());
@@ -33348,6 +33354,9 @@ function _changeLobbyNameHandler() {
       while (1) {
         switch (_context14.prev = _context14.next) {
           case 0:
+            Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
+              return error.style.display = "none";
+            });
             oldname = _jsCookie["default"].get("lobby");
             newname = lobby.getElementsByClassName("newname")[0].value;
 
@@ -33366,7 +33375,7 @@ function _changeLobbyNameHandler() {
               client.subscribe("warships/".concat(newname, "/game/#"));
             });
 
-          case 3:
+          case 4:
           case "end":
             return _context14.stop();
         }
@@ -33376,15 +33385,166 @@ function _changeLobbyNameHandler() {
   return _changeLobbyNameHandler.apply(this, arguments);
 }
 
+function filterLobbies() {
+  return _filterLobbies.apply(this, arguments);
+}
+
+function _filterLobbies() {
+  _filterLobbies = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee15() {
+    var name, lobbies, _lobbies;
+
+    return _regenerator["default"].wrap(function _callee15$(_context15) {
+      while (1) {
+        switch (_context15.prev = _context15.next) {
+          case 0:
+            name = dashboard.getElementsByTagName("input")[0].value;
+
+            if (!(name !== "")) {
+              _context15.next = 8;
+              break;
+            }
+
+            _context15.next = 4;
+            return _axios["default"].get("http://localhost:5000/lobbies/lobbyfilter/".concat(name));
+
+          case 4:
+            lobbies = _context15.sent.data;
+            lobbyListGenerate(lobbies);
+            _context15.next = 12;
+            break;
+
+          case 8:
+            _context15.next = 10;
+            return _axios["default"].get("http://localhost:5000/lobbies");
+
+          case 10:
+            _lobbies = _context15.sent.data;
+            lobbyListGenerate(_lobbies);
+
+          case 12:
+          case "end":
+            return _context15.stop();
+        }
+      }
+    }, _callee15);
+  }));
+  return _filterLobbies.apply(this, arguments);
+}
+
+function settingsHandler() {
+  dashboard.style.display = "none";
+  board.style.display = "none";
+  settings.style.display = "block";
+}
+
+function returnHandler() {
+  settings.style.display = "none";
+  dashboard.style.display = "block";
+}
+
+function changeNameHandler() {
+  return _changeNameHandler.apply(this, arguments);
+}
+
+function _changeNameHandler() {
+  _changeNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee16() {
+    var newname;
+    return _regenerator["default"].wrap(function _callee16$(_context16) {
+      while (1) {
+        switch (_context16.prev = _context16.next) {
+          case 0:
+            Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
+              return error.style.display = "none";
+            });
+            newname = settings.getElementsByClassName("name")[0].value;
+            console.log(newname);
+
+            _axios["default"].patch("http://localhost:5000/users/changename", {
+              oldname: _jsCookie["default"].get('user'),
+              newname: newname
+            }).then(function (res) {
+              _jsCookie["default"].set('user', newname, {
+                expires: 7
+              });
+
+              window.location.reload();
+            })["catch"](function (rej) {
+              console.log(rej);
+              console.log(settings.getElementsByClassName("login")[0]);
+              settings.getElementsByClassName("login")[0].style.display = "block";
+            });
+
+          case 4:
+          case "end":
+            return _context16.stop();
+        }
+      }
+    }, _callee16);
+  }));
+  return _changeNameHandler.apply(this, arguments);
+}
+
+function changePassHandler() {
+  return _changePassHandler.apply(this, arguments);
+}
+
+function _changePassHandler() {
+  _changePassHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee17() {
+    var username, oldpass, newpass1, newpass2;
+    return _regenerator["default"].wrap(function _callee17$(_context17) {
+      while (1) {
+        switch (_context17.prev = _context17.next) {
+          case 0:
+            Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
+              return error.style.display = "none";
+            });
+            username = _jsCookie["default"].get('user');
+            oldpass = settings.getElementsByClassName("oldpass")[0].value;
+            newpass1 = settings.getElementsByClassName("newpass1")[0].value;
+            newpass2 = settings.getElementsByClassName("newpass2")[0].value;
+            console.log(oldpass);
+
+            if (newpass1 !== newpass2) {
+              settings.getElementsByClassName("wrongpass")[0].style.display = "block";
+            } else {
+              _axios["default"].patch("http://localhost:5000/users/changepass/".concat(username), {
+                oldpass: crypto.createHash('sha256').update(oldpass).digest('base64'),
+                newpass: crypto.createHash('sha256').update(newpass1).digest('base64')
+              }).then(function (res) {
+                window.location.reload();
+              })["catch"](function (rej) {
+                console.log(rej);
+                settings.getElementsByClassName("authfail")[0].style.display = "block";
+              });
+            }
+
+          case 7:
+          case "end":
+            return _context17.stop();
+        }
+      }
+    }, _callee17);
+  }));
+  return _changePassHandler.apply(this, arguments);
+}
+
 var loginButton = main.getElementsByClassName("submit")[0];
 var newUserButton = main.getElementsByClassName("register")[0];
 var logoutButton = dashboard.getElementsByClassName("logout")[0];
 var registerButton = register.getElementsByClassName("submit")[0];
 var newLobbyButton = dashboard.getElementsByClassName("newlobby")[0];
-var joinLobbyButton = dashboard.getElementsByClassName("submit")[0];
+var searchLobbyButton = dashboard.getElementsByClassName("submit")[0];
 var sendMsgButton = lobby.getElementsByClassName("sendmsg")[0];
 var leaveLobbyButton = lobby.getElementsByClassName("leave")[0];
 var changeLobbyNameButton = lobby.getElementsByClassName("setnewname")[0];
+var accountsettingsbutton = dashboard.getElementsByClassName("settings")[0];
+var settingsreturnbutton = settings.getElementsByClassName("settingsreturn")[0];
+var settingsnamebutton = settings.getElementsByClassName("changename")[0];
+var settingspassbutton = settings.getElementsByClassName("changepass")[0];
+settingsnamebutton.addEventListener("click", changeNameHandler, false);
+settingspassbutton.addEventListener("click", changePassHandler, false);
+settingsreturnbutton.addEventListener("click", returnHandler, false);
+accountsettingsbutton.addEventListener("click", settingsHandler, false);
 changeLobbyNameButton.addEventListener("click", changeLobbyNameHandler, false);
 sendMsgButton.addEventListener("click", sendMsgHandler, false);
 newLobbyButton.addEventListener("click", newLobbyHandler, false);
@@ -33392,7 +33552,7 @@ loginButton.addEventListener("click", formSubmit, false);
 logoutButton.addEventListener("click", logout, false);
 registerButton.addEventListener("click", addUser, false);
 newUserButton.addEventListener("click", moveToRegister, false);
-joinLobbyButton.addEventListener("click", joinLobbyHandler, false);
+searchLobbyButton.addEventListener("click", filterLobbies, false);
 leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false);
 
 var onJoin = function onJoin() {

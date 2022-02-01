@@ -12,27 +12,19 @@
 
 <body>
   <div id="mainlogin">
-    <h1 class="title">MQTT</h1>
-    <h2>Zaloguj się</h2>
-    <form name="loginform">
-      <label>
-        Nazwa użytkownika:
-        <input type="text">
-      </label>
-      <label>
-        Hasło:
-        <input type="password">
-      </label>
-      <br>
-      <button type="button" class="submit">Zaloguj</button>
-    </form>
-    <button class="register">Zarejestruj się</button>
-    <h4 class="error wrongcredentials">Niepoprawne dane użytkownika</h4>
-    <h4 class="error loggedin">Użytkownik jest już zalogowany na innym urządzeniu</h4>
+    <span class="title">BATTLESHIPS</span>
+      <span class="loginfo">Sign in</span>
+      <input type="text" placeholder="Username">
+      <button type="button" class="submit">Sign in</button>
+      <h2 class="error wrongcredentials">Niepoprawne dane użytkownika</h4>
+      <h2 class="error loggedin">Użytkownik jest już zalogowany na innym urządzeniu</h4>
+      <input type="password" placeholder="Password">
+      <button class="register">Register</button>
   </div>
   <div id="register">
     <h2>Zarejestruj się</h2>
     <form name="registerform">
+      POWRÓT
       <label>
         Nazwa użytkownika:
         <input type="text" required>
@@ -56,17 +48,44 @@
     <h1 class="title">DASHBOARD</h1>
     <button class="logout">Wyloguj się</button>
     <button class="newlobby">New lobby</button>
+    <button class="settings">Account settings</button>
     <h4 class="error nonewlobby">Nie udało się utworzyć pokoju</h2>
     <label>
-      Nazwa pokoju:
+      Search by lobby name:
       <input type="text">
     </label>
-    <button type="button" class="submit">Dołącz</button>
+    <button type="button" class="submit">Search</button>
     <h4 class="error nojoinlobby">Nie udało się znaleźć pokoju</h4>
     <h2 class="usergreeting"></h2>
     <div class="lobbylist">
       <div class="lobbylisting entry"></div>
     </div>
+  </div>
+  <div id="settings">
+    <h2>SETTINGS</h2>
+    <button class="settingsreturn">Return</button>
+    <label>
+      Change your account name:
+      <input type="text" class="name">
+      <button type="button" class="changename">Confirm</button>
+    </label>
+    <h4 class="error login">Nazwa użytkownika jest już zajęta</h4>
+    <h4>Change your password</h4>
+    <label>
+      Current password
+      <input type="password" class="oldpass">
+    </label>
+    <label>
+      New password
+      <input type="password" class="newpass1">
+    </label>
+    <label>
+      Confirm new password password
+      <input type="password" class="newpass2">
+    </label>
+    <button type="button" class="changepass">Confirm</button>
+    <h4 class="error wrongpass">New password and confirmed password don't match!</h4>
+    <h4 class="error authfail">Given current password is wrong!</h4>
   </div>
   <div id="lobby">
     <div id="main">
