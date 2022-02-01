@@ -32743,55 +32743,30 @@ var dashboard = document.getElementById("dashboard");
 var register = document.getElementById("register");
 var lobby = document.getElementById("lobby");
 var board = document.getElementById("main");
-var settings = document.getElementById("settings");
+var settings = document.getElementById("settings"); // zaznaczanie, że użytkownik jest nieaktywny po odświeżeniu / wyłączeniu okna
 
 function onUnload() {
   if (_jsCookie["default"].get('user')) {
-    //Cookies.remove('lobby')
-    //client.send("warships/test", String(client.isConnected()))
-    //if (client.isConnected()){
-    // const test = axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
-    // console.log(test)
-    //.then(async res => {
-    // if (test){
-    // 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/end`, "end")
-    // 	axios.delete(`http://localhost:5000/lobbies/${Cookies.get('user')}`)
-    // } else {
-    // 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
-    // }
-    //})
-    //.catch(async rej => {
-    //client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
-    //})
-    //}
     _axios["default"].patch("http://localhost:5000/users/logout", {
       login: _jsCookie["default"].get('user')
     });
   }
 
   return null;
-} // function sendOnUnload() {
-// 	if (Cookies.get("user")){
-// 		if (client.isConnected()) client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
-// 		setTimeout(() => console.log("logout prompt send in"), 2000)
-// 	}
-// 	return null;
-// }
+}
 
-
-window.addEventListener("beforeunload", onUnload, false); //window.addEventListener("beforeunload", sendOnUnload, false)
+window.addEventListener("beforeunload", onUnload, false); // funkcja losująca 256-bitową liczbę do autoryzacji ciasteczek
 
 function rnd256() {
   var bytes = new Uint8Array(32);
   window.crypto.getRandomValues(bytes);
   var bytesHex = bytes.reduce(function (o, v) {
     return o + ('00' + v.toString(16)).slice(-2);
-  }, ''); // convert hexademical value to a decimal string
-
+  }, '');
   return BigInt('0x' + bytesHex).toString(10);
 }
 
-console.log(rnd256().length);
+console.log(rnd256().length); // cookie auth
 
 if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
   _axios["default"].get("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth'))).then( /*#__PURE__*/function () {
@@ -32852,7 +32827,8 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
   });
 } else {
   console.log("Nikt nie jest zalogowany");
-}
+} // powrót do lobby po odświeżeniu / wyjsciu ( nie działa z lobby.closed )
+
 
 if (_jsCookie["default"].get('lobby')) {
   _axios["default"].get("http://localhost:5000/lobbies/".concat(_jsCookie["default"].get('lobby'))).then( /*#__PURE__*/function () {
@@ -32867,6 +32843,8 @@ if (_jsCookie["default"].get('lobby')) {
               board.style.display = "block";
 
               _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(_jsCookie["default"].get('user'))).then(function (res) {
+                lobby.getElementsByClassName("updatelobby")[0].style.display = "block";
+                lobby.getElementsByClassName("updatelobby")[1].style.display = "block";
                 var options = {
                   timeout: 3,
                   onSuccess: onConnect,
@@ -32893,23 +32871,69 @@ if (_jsCookie["default"].get('lobby')) {
     return function (_x2) {
       return _ref2.apply(this, arguments);
     };
-  }())["catch"](function (rej) {
-    console.log("Pokój już nie istnieje");
+  }())["catch"]( /*#__PURE__*/function () {
+    var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(rej) {
+      return _regenerator["default"].wrap(function _callee4$(_context4) {
+        while (1) {
+          switch (_context4.prev = _context4.next) {
+            case 0:
+              _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(_jsCookie["default"].get('user'))).then( /*#__PURE__*/function () {
+                var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(res) {
+                  return _regenerator["default"].wrap(function _callee3$(_context3) {
+                    while (1) {
+                      switch (_context3.prev = _context3.next) {
+                        case 0:
+                          _context3.next = 2;
+                          return _axios["default"]["delete"]("http://localhost:5000/lobbies/".concat(_jsCookie["default"].get('user')));
 
-    _jsCookie["default"].remove('lobby');
-  });
-}
+                        case 2:
+                          console.log(rej);
 
-function lobbyListGenerate(_x3) {
+                          _jsCookie["default"].remove('lobby');
+
+                        case 4:
+                        case "end":
+                          return _context3.stop();
+                      }
+                    }
+                  }, _callee3);
+                }));
+
+                return function (_x4) {
+                  return _ref4.apply(this, arguments);
+                };
+              }())["catch"](function (rej) {
+                console.log(rej);
+
+                _jsCookie["default"].remove('lobby');
+              });
+
+            case 1:
+            case "end":
+              return _context4.stop();
+          }
+        }
+      }, _callee4);
+    }));
+
+    return function (_x3) {
+      return _ref3.apply(this, arguments);
+    };
+  }());
+} // generowanie listy pokoi
+
+
+function lobbyListGenerate(_x5) {
   return _lobbyListGenerate.apply(this, arguments);
-}
+} // logowanie
+
 
 function _lobbyListGenerate() {
-  _lobbyListGenerate = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(lobbies) {
+  _lobbyListGenerate = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8(lobbies) {
     var lobbylist, firstentry;
-    return _regenerator["default"].wrap(function _callee6$(_context6) {
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
             lobbylist = dashboard.getElementsByClassName("lobbylist")[0];
 
@@ -32945,24 +32969,25 @@ function _lobbyListGenerate() {
 
           case 7:
           case "end":
-            return _context6.stop();
+            return _context8.stop();
         }
       }
-    }, _callee6);
+    }, _callee8);
   }));
   return _lobbyListGenerate.apply(this, arguments);
 }
 
 function formSubmit() {
   return _formSubmit.apply(this, arguments);
-}
+} // wylogowywanie
+
 
 function _formSubmit() {
-  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8() {
+  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10() {
     var credentials;
-    return _regenerator["default"].wrap(function _callee8$(_context8) {
+    return _regenerator["default"].wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -32975,21 +33000,21 @@ function _formSubmit() {
             main.getElementsByTagName("input")[1].value = "";
 
             _axios["default"].post("http://localhost:5000/users/login", credentials).then( /*#__PURE__*/function () {
-              var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(res) {
+              var _ref8 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9(res) {
                 var lobbies;
-                return _regenerator["default"].wrap(function _callee7$(_context7) {
+                return _regenerator["default"].wrap(function _callee9$(_context9) {
                   while (1) {
-                    switch (_context7.prev = _context7.next) {
+                    switch (_context9.prev = _context9.next) {
                       case 0:
                         main.style.display = "none";
                         dashboard.style.display = "grid";
                         main.getElementsByClassName("error")[0].style.display = "none";
                         dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
-                        _context7.next = 6;
+                        _context9.next = 6;
                         return _axios["default"].get("http://localhost:5000/lobbies");
 
                       case 6:
-                        lobbies = _context7.sent.data;
+                        lobbies = _context9.sent.data;
                         lobbyListGenerate(lobbies);
 
                         _jsCookie["default"].set('user', credentials.login, {
@@ -33000,7 +33025,7 @@ function _formSubmit() {
                           expires: 7
                         });
 
-                        _context7.next = 12;
+                        _context9.next = 12;
                         return _axios["default"].post("http://localhost:5000/cookieauth", {
                           user: _jsCookie["default"].get('user'),
                           authnum: _jsCookie["default"].get('auth')
@@ -33008,14 +33033,14 @@ function _formSubmit() {
 
                       case 12:
                       case "end":
-                        return _context7.stop();
+                        return _context9.stop();
                     }
                   }
-                }, _callee7);
+                }, _callee9);
               }));
 
-              return function (_x7) {
-                return _ref6.apply(this, arguments);
+              return function (_x9) {
+                return _ref8.apply(this, arguments);
               };
             }())["catch"](function (rej) {
               if (rej.response.status == 401) {
@@ -33027,34 +33052,35 @@ function _formSubmit() {
 
           case 5:
           case "end":
-            return _context8.stop();
+            return _context10.stop();
         }
       }
-    }, _callee8);
+    }, _callee10);
   }));
   return _formSubmit.apply(this, arguments);
 }
 
 function logout() {
   return _logout.apply(this, arguments);
-}
+} // rejestracja
+
 
 function _logout() {
-  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9() {
-    return _regenerator["default"].wrap(function _callee9$(_context9) {
+  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11() {
+    return _regenerator["default"].wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
             });
-            _context9.next = 3;
+            _context11.next = 3;
             return _axios["default"].patch("http://localhost:5000/users/logout", {
               login: _jsCookie["default"].get('user')
             });
 
           case 3:
-            _context9.next = 5;
+            _context11.next = 5;
             return _axios["default"]["delete"]("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth')));
 
           case 5:
@@ -33067,24 +33093,25 @@ function _logout() {
 
           case 9:
           case "end":
-            return _context9.stop();
+            return _context11.stop();
         }
       }
-    }, _callee9);
+    }, _callee11);
   }));
   return _logout.apply(this, arguments);
 }
 
 function addUser() {
   return _addUser.apply(this, arguments);
-}
+} // przejscie do ekranu rejestracji
+
 
 function _addUser() {
-  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10() {
+  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12() {
     var login, pass1, pass2, hash, credentials;
-    return _regenerator["default"].wrap(function _callee10$(_context10) {
+    return _regenerator["default"].wrap(function _callee12$(_context12) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context12.prev = _context12.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -33119,10 +33146,10 @@ function _addUser() {
 
           case 5:
           case "end":
-            return _context10.stop();
+            return _context12.stop();
         }
       }
-    }, _callee10);
+    }, _callee12);
   }));
   return _addUser.apply(this, arguments);
 }
@@ -33130,17 +33157,19 @@ function _addUser() {
 function moveToRegister() {
   main.style.display = "none";
   register.style.display = "grid";
-}
+} // tworzenie nowego lobby
+
 
 function newLobbyHandler() {
   return _newLobbyHandler.apply(this, arguments);
-}
+} // dołączanie do lobby
+
 
 function _newLobbyHandler() {
-  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11() {
-    return _regenerator["default"].wrap(function _callee11$(_context11) {
+  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13() {
+    return _regenerator["default"].wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context11.prev = _context11.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
             _axios["default"].post("http://localhost:5000/lobbies/newlobby", {
               owner: _jsCookie["default"].get('user'),
@@ -33168,31 +33197,32 @@ function _newLobbyHandler() {
 
           case 1:
           case "end":
-            return _context11.stop();
+            return _context13.stop();
         }
       }
-    }, _callee11);
+    }, _callee13);
   }));
   return _newLobbyHandler.apply(this, arguments);
 }
 
-function joinLobbyHandler(_x4) {
+function joinLobbyHandler(_x6) {
   return _joinLobbyHandler.apply(this, arguments);
-}
+} // wysyłanie wiadomości
+
 
 function _joinLobbyHandler() {
-  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13(name) {
-    return _regenerator["default"].wrap(function _callee13$(_context13) {
+  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee15(name) {
+    return _regenerator["default"].wrap(function _callee15$(_context15) {
       while (1) {
-        switch (_context13.prev = _context13.next) {
+        switch (_context15.prev = _context15.next) {
           case 0:
             // const name = dashboard.getElementsByTagName("input")[0].value
             _axios["default"].get("http://localhost:5000/lobbies/".concat(name)).then( /*#__PURE__*/function () {
-              var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(res) {
+              var _ref9 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee14(res) {
                 var options;
-                return _regenerator["default"].wrap(function _callee12$(_context12) {
+                return _regenerator["default"].wrap(function _callee14$(_context14) {
                   while (1) {
-                    switch (_context12.prev = _context12.next) {
+                    switch (_context14.prev = _context14.next) {
                       case 0:
                         _jsCookie["default"].set('lobby', res.data.name);
 
@@ -33201,7 +33231,7 @@ function _joinLobbyHandler() {
                         dashboard.style.display = "none";
                         lobby.style.display = "grid";
                         board.style.display = "block";
-                        _context12.next = 8;
+                        _context14.next = 8;
                         return _axios["default"].patch("http://localhost:5000/lobbies/closed", {
                           name: res.data.name
                         });
@@ -33216,14 +33246,14 @@ function _joinLobbyHandler() {
 
                       case 10:
                       case "end":
-                        return _context12.stop();
+                        return _context14.stop();
                     }
                   }
-                }, _callee12);
+                }, _callee14);
               }));
 
-              return function (_x8) {
-                return _ref7.apply(this, arguments);
+              return function (_x10) {
+                return _ref9.apply(this, arguments);
               };
             }())["catch"](function (rej) {
               dashboard.getElementsByClassName("nojoinlobby")[0].style.display = "block";
@@ -33232,10 +33262,10 @@ function _joinLobbyHandler() {
 
           case 1:
           case "end":
-            return _context13.stop();
+            return _context15.stop();
         }
       }
-    }, _callee13);
+    }, _callee15);
   }));
   return _joinLobbyHandler.apply(this, arguments);
 }
@@ -33247,14 +33277,15 @@ var sendMsgHandler = function sendMsgHandler() {
   console.log("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user"), "/msg"));
   client.send("warships/".concat(name, "/chat/").concat(_jsCookie["default"].get("user"), "/msg"), msg);
   lobby.getElementsByClassName("msg")[0].value = "";
-};
+}; // wychodzenie z lobby
+
 
 var leaveLobbyHandler = /*#__PURE__*/function () {
-  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
+  var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7() {
     var username, name;
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
+    return _regenerator["default"].wrap(function _callee7$(_context7) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context7.prev = _context7.next) {
           case 0:
             username = _jsCookie["default"].get('user');
             name = lobby.getElementsByClassName("lobbyname")[0].textContent;
@@ -33262,10 +33293,10 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
             _jsCookie["default"].remove('lobby');
 
             _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(username)).then( /*#__PURE__*/function () {
-              var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(res) {
-                return _regenerator["default"].wrap(function _callee3$(_context3) {
+              var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5(res) {
+                return _regenerator["default"].wrap(function _callee5$(_context5) {
                   while (1) {
-                    switch (_context3.prev = _context3.next) {
+                    switch (_context5.prev = _context5.next) {
                       case 0:
                         console.log("Owner left");
 
@@ -33278,23 +33309,23 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
 
                       case 2:
                       case "end":
-                        return _context3.stop();
+                        return _context5.stop();
                     }
                   }
-                }, _callee3);
+                }, _callee5);
               }));
 
-              return function (_x5) {
-                return _ref4.apply(this, arguments);
+              return function (_x7) {
+                return _ref6.apply(this, arguments);
               };
             }())["catch"]( /*#__PURE__*/function () {
-              var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(rej) {
-                return _regenerator["default"].wrap(function _callee4$(_context4) {
+              var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6(rej) {
+                return _regenerator["default"].wrap(function _callee6$(_context6) {
                   while (1) {
-                    switch (_context4.prev = _context4.next) {
+                    switch (_context6.prev = _context6.next) {
                       case 0:
                         console.log("user left");
-                        _context4.next = 3;
+                        _context6.next = 3;
                         return _axios["default"].patch("http://localhost:5000/lobbies/open", {
                           name: name
                         });
@@ -33310,49 +33341,42 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
 
                       case 10:
                       case "end":
-                        return _context4.stop();
+                        return _context6.stop();
                     }
                   }
-                }, _callee4);
+                }, _callee6);
               }));
 
-              return function (_x6) {
-                return _ref5.apply(this, arguments);
+              return function (_x8) {
+                return _ref7.apply(this, arguments);
               };
             }());
 
           case 4:
           case "end":
-            return _context5.stop();
+            return _context7.stop();
         }
       }
-    }, _callee5);
+    }, _callee7);
   }));
 
   return function leaveLobbyHandler() {
-    return _ref3.apply(this, arguments);
+    return _ref5.apply(this, arguments);
   };
-}();
+}(); // zmiana nazwy lobby
+
 
 function changeLobbyNameHandler() {
   return _changeLobbyNameHandler.apply(this, arguments);
-} // function reload() {
-// 	const head = document.getElementsByTagName('head')[0]
-// 	const script = document.createElement('script')
-// 	script.src = "js/skrypt.js"  
-// 	script.defer = true
-// 	script.type = "module"
-// 	head.appendChild(script)
-// 	console.log("reloading?")
-//   }
+} // filtrowanie pokoi
 
 
 function _changeLobbyNameHandler() {
-  _changeLobbyNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee14() {
+  _changeLobbyNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee16() {
     var oldname, newname;
-    return _regenerator["default"].wrap(function _callee14$(_context14) {
+    return _regenerator["default"].wrap(function _callee16$(_context16) {
       while (1) {
-        switch (_context14.prev = _context14.next) {
+        switch (_context16.prev = _context16.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -33377,56 +33401,57 @@ function _changeLobbyNameHandler() {
 
           case 4:
           case "end":
-            return _context14.stop();
+            return _context16.stop();
         }
       }
-    }, _callee14);
+    }, _callee16);
   }));
   return _changeLobbyNameHandler.apply(this, arguments);
 }
 
 function filterLobbies() {
   return _filterLobbies.apply(this, arguments);
-}
+} // przejscie do ustawien
+
 
 function _filterLobbies() {
-  _filterLobbies = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee15() {
+  _filterLobbies = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee17() {
     var name, lobbies, _lobbies;
 
-    return _regenerator["default"].wrap(function _callee15$(_context15) {
+    return _regenerator["default"].wrap(function _callee17$(_context17) {
       while (1) {
-        switch (_context15.prev = _context15.next) {
+        switch (_context17.prev = _context17.next) {
           case 0:
             name = dashboard.getElementsByTagName("input")[0].value;
 
             if (!(name !== "")) {
-              _context15.next = 8;
+              _context17.next = 8;
               break;
             }
 
-            _context15.next = 4;
+            _context17.next = 4;
             return _axios["default"].get("http://localhost:5000/lobbies/lobbyfilter/".concat(name));
 
           case 4:
-            lobbies = _context15.sent.data;
+            lobbies = _context17.sent.data;
             lobbyListGenerate(lobbies);
-            _context15.next = 12;
+            _context17.next = 12;
             break;
 
           case 8:
-            _context15.next = 10;
+            _context17.next = 10;
             return _axios["default"].get("http://localhost:5000/lobbies");
 
           case 10:
-            _lobbies = _context15.sent.data;
+            _lobbies = _context17.sent.data;
             lobbyListGenerate(_lobbies);
 
           case 12:
           case "end":
-            return _context15.stop();
+            return _context17.stop();
         }
       }
-    }, _callee15);
+    }, _callee17);
   }));
   return _filterLobbies.apply(this, arguments);
 }
@@ -33435,23 +33460,26 @@ function settingsHandler() {
   dashboard.style.display = "none";
   board.style.display = "none";
   settings.style.display = "grid";
-}
+} // powrot do dashboard
+
 
 function returnHandler() {
   settings.style.display = "none";
   dashboard.style.display = "grid";
-}
+} // zmiana nazwy użytkownika
+
 
 function changeNameHandler() {
   return _changeNameHandler.apply(this, arguments);
-}
+} // zmiana hasła
+
 
 function _changeNameHandler() {
-  _changeNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee16() {
+  _changeNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee18() {
     var newname;
-    return _regenerator["default"].wrap(function _callee16$(_context16) {
+    return _regenerator["default"].wrap(function _callee18$(_context18) {
       while (1) {
-        switch (_context16.prev = _context16.next) {
+        switch (_context18.prev = _context18.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -33476,24 +33504,25 @@ function _changeNameHandler() {
 
           case 4:
           case "end":
-            return _context16.stop();
+            return _context18.stop();
         }
       }
-    }, _callee16);
+    }, _callee18);
   }));
   return _changeNameHandler.apply(this, arguments);
 }
 
 function changePassHandler() {
   return _changePassHandler.apply(this, arguments);
-}
+} // powrót do ekranu logowania
+
 
 function _changePassHandler() {
-  _changePassHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee17() {
+  _changePassHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee19() {
     var username, oldpass, newpass1, newpass2;
-    return _regenerator["default"].wrap(function _callee17$(_context17) {
+    return _regenerator["default"].wrap(function _callee19$(_context19) {
       while (1) {
-        switch (_context17.prev = _context17.next) {
+        switch (_context19.prev = _context19.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -33520,10 +33549,10 @@ function _changePassHandler() {
 
           case 7:
           case "end":
-            return _context17.stop();
+            return _context19.stop();
         }
       }
-    }, _callee17);
+    }, _callee19);
   }));
   return _changePassHandler.apply(this, arguments);
 }
@@ -33531,7 +33560,8 @@ function _changePassHandler() {
 function returnToMainHandler() {
   register.style.display = "none";
   main.style.display = "grid";
-}
+} // przyciski i ich eventy
+
 
 var loginButton = main.getElementsByClassName("submit")[0];
 var newUserButton = main.getElementsByClassName("register")[0];
@@ -33560,7 +33590,8 @@ logoutButton.addEventListener("click", logout, false);
 registerButton.addEventListener("click", addUser, false);
 newUserButton.addEventListener("click", moveToRegister, false);
 searchLobbyButton.addEventListener("click", filterLobbies, false);
-leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false);
+leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false); // ------------  MQTT --------------
+// on connect dla dołączających
 
 var onJoin = function onJoin() {
   var lobbyname = _jsCookie["default"].get('lobby');
@@ -33573,7 +33604,8 @@ var onJoin = function onJoin() {
   console.log("subscribed to warships/".concat(lobbyname, "/chat/#"));
   console.log("subscribed to warships/".concat(lobbyname, "/game/#"));
   client.send("warships/".concat(lobbyname, "/chat/").concat(username, "/connected"), "connected");
-};
+}; // onconnect dla hosta
+
 
 var onConnect = function onConnect() {
   var lobbyname = _jsCookie["default"].get('lobby');
@@ -33590,7 +33622,8 @@ var onConnect = function onConnect() {
 var onFailure = function onFailure(msg) {
   console.log("Connection attempt to host 127.0.0.1 failed.");
   setTimeout(MQTTconnect, reconnectTimeout);
-};
+}; // obsługa wiadomości
+
 
 var onMessageArrived = function onMessageArrived(msg) {
   console.log(msg.destinationName, msg.payloadString);
@@ -33744,11 +33777,7 @@ var onMessageArrived = function onMessageArrived(msg) {
 
         case "start":
           setTimeout(startGame, 500);
-      } // // Check if it's the end of the game
-      // if (cpuFleet.ships.length == 0) {
-      //      $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
-      //  } else setTimeout(bot.select, 800);
-
+      }
     } else {
       if (topic[4] == "start") setTimeout(startGame, 500);
     }
@@ -33768,13 +33797,14 @@ var MQTTconnect = function MQTTconnect(options) {
   client.onMessageArrived = onMessageArrived;
   client.onConnectionLost = onConnectionLost;
   client.connect(options);
-}; // Variables
+}; // ----------- BATTLESHIPS ---------------
+// zmienne
 
 
 var playerFleet, cpuFleet; // flota własna i przeciwnika
 
 var attemptedHits = []; // ??
-// Object Constructors
+// Konstruktor floty
 
 function Fleet(name) {
   this.name = name;
@@ -33838,7 +33868,8 @@ function Fleet(name) {
 
     return false;
   };
-}
+} // Konstruktor statku
+
 
 function Ship(name) {
   this.name = name;
@@ -33897,8 +33928,7 @@ var output = {
   },
   "lost": " >You have lost your fleet.  You lost!",
   "won": " >Enemy's fleet is sunk.  You won!"
-}; // Objects for playing the game and bot for playing the computer
-// plansza przeciwnika
+}; // plansza przeciwnika
 
 var topBoard = {
   allHits: [],
@@ -33918,78 +33948,54 @@ var topBoard = {
 
         var username = _jsCookie["default"].get('user');
 
-        client.send("warships/".concat(lobbyname, "/game/").concat(username, "/shot"), "".concat(num)); // var bool = cpuFleet.checkIfHit(num); // sprawdza, czy w flocie przeciwnika jest trafienie ( MQTT )
-        // if (false == bool) {
-        // 	$(".text").text(output.miss("You")); // wypisuje wiadomość o pudle
-        // 	$(this).children().addClass("miss"); // nadaje polu klasę "niewypału"
-        // } else $(this).children().addClass("hit"); // nadaje polu klasę trafiony
-        // $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
-        // // Check if it's the end of the game
-        // if (cpuFleet.ships.length == 0) {
-        // 	$(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
-        // } else setTimeout(bot.select, 800);
-      } // end of if
-
+        client.send("warships/".concat(lobbyname, "/game/").concat(username, "/shot"), "".concat(num));
+      }
     });
   }
 }; // plansza gracza
-
-var bottomBoard = {
-  currentHits: [],
-  // obecnie trafienia ?
-  checkAttempt: function checkAttempt(hit) {
-    if (playerFleet.checkIfHit(hit)) {
-      // sprawdza czy strzał trafił
-      // Insert hit into an array for book keeping
-      bottomBoard.currentHits.push(hit); // wrzuca pole do listy trafionych, for some reason
-
-      if (this.currentHits.length > 1) bot.prev_hit = true; // 
-      // display hit on the grid
-
-      $(".bottom").find("." + hit).children().addClass("hit"); // wyświetla trafienie na planszy
-
-      if (bottomBoard.hasShipBeenSunk()) {
-        // some bot ai shit, jeśli statek został zatopiony
-        // clear flags
-        bot.hunting = bot.prev_hit = false;
-
-        if (bot.sizeOfShipSunk == bottomBoard.currentHits.length) {
-          // some bot ai shit ( MQTT wysyła info o trafieniu)
-          bot.num_misses = bot.back_count = bot.nextMove.length = bottomBoard.currentHits.length = bot.sizeOfShipSunk = bot.currrent = 0;
-        } else {
-          bot.special = bot.case1 = true;
-        } // check for special cases
-
-
-        if (bot.specialHits.length > 0) bot.special = true; // check for end of game.	
-      }
-
-      return true;
-    } else {
-      $(".bottom").find("." + hit).children().addClass("miss"); // zaznacza pole jako nietrafione
-
-      bot.current = bottomBoard.currentHits[0];
-      bot.prev_hit = false;
-
-      if (bottomBoard.currentHits.length > 1) {
-        // some bot ai shit ( MQTT wysyła info o nietrafieniu)
-        bot.back = true;
-        bot.num_misses++;
-      }
-
-      if (bot.case2) {
-        bot.special = true;
-        bot.case2 = false;
-      }
-
-      return false;
-    }
-  },
-  hasShipBeenSunk: function hasShipBeenSunk() {
-    if (bot.sizeOfShipSunk > 0) return true; // ?
-    else return false;
-  }
-}; //  Create the games grids and layout
+// var bottomBoard = {
+// 	currentHits: [], // obecnie trafienia ?
+// 	checkAttempt: function(hit) {
+// 		if (playerFleet.checkIfHit(hit)) { // sprawdza czy strzał trafił
+// 			// Insert hit into an array for book keeping
+// 			bottomBoard.currentHits.push(hit); // wrzuca pole do listy trafionych, for some reason
+//       if (this.currentHits.length > 1) bot.prev_hit = true; // 
+// 			// display hit on the grid
+// 			$(".bottom").find("." + hit).children().addClass("hit"); // wyświetla trafienie na planszy
+// 			if (bottomBoard.hasShipBeenSunk()) { // some bot ai shit, jeśli statek został zatopiony
+// 				// clear flags
+// 				bot.hunting = bot.prev_hit = false;
+// 				if (bot.sizeOfShipSunk == bottomBoard.currentHits.length) { // some bot ai shit ( MQTT wysyła info o trafieniu)
+// 					bot.num_misses = bot.back_count = bot.nextMove.length = bottomBoard.currentHits.length = bot.sizeOfShipSunk = bot.currrent = 0;
+// 				} else {
+// 					bot.special =  bot.case1 = true;
+// 				}
+// 				// check for special cases
+// 				if (bot.specialHits.length > 0) bot.special = true;
+// 				// check for end of game.	
+// 			}
+// 			return true;
+// 		} else {
+// 			$(".bottom").find("." + hit).children().addClass("miss"); // zaznacza pole jako nietrafione
+// 			bot.current = bottomBoard.currentHits[0];
+// 			bot.prev_hit = false;
+// 			if (bottomBoard.currentHits.length > 1) { // some bot ai shit ( MQTT wysyła info o nietrafieniu)
+// 				bot.back = true;
+// 				bot.num_misses++;
+// 			}
+// 			if (bot.case2) {
+// 				bot.special = true;
+// 				bot.case2 = false;
+// 			}
+// 			return false;
+// 		}
+// 	},
+// 	hasShipBeenSunk: function() {
+// 		if (bot.sizeOfShipSunk > 0) return true; // ?
+// 		else return false;
+// 	}
+// }
+//  Create the games grids and layout
 
 playerFleet = new Fleet("Player 1");
 playerFleet.initShips();

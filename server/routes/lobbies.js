@@ -33,7 +33,7 @@ router.get("/checkowner/:owner", async (req, res) => {
 router.get("/:lobbyname", async (req, res) => {
     const checkName = await client.query("SELECT * FROM lobbies WHERE name = $1", [ req.params.lobbyname ])
     if (checkName.rows[0]) {
-        return checkName.rows[0].closed ? res.sendStatus(500) : res.send(checkName.rows[0])
+        return checkName.rows[0].closed ? res.sendStatus(401) : res.send(checkName.rows[0])
     }
     return res.sendStatus(500)
 })

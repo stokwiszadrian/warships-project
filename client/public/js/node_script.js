@@ -15,52 +15,29 @@ const lobby = document.getElementById("lobby")
 const board = document.getElementById("main")
 const settings = document.getElementById("settings")
 
+
+// zaznaczanie, że użytkownik jest nieaktywny po odświeżeniu / wyłączeniu okna
 function onUnload() {
 	if (Cookies.get('user')){
-		//Cookies.remove('lobby')
-		//client.send("warships/test", String(client.isConnected()))
-		//if (client.isConnected()){
-			// const test = axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
-			// console.log(test)
-			//.then(async res => {
-			// if (test){
-			// 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/end`, "end")
-			// 	axios.delete(`http://localhost:5000/lobbies/${Cookies.get('user')}`)
-			// } else {
-			// 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
-			// }
-			//})
-			//.catch(async rej => {
-				//client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
-			//})
-		//}
 		axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
 	}
 	return null;
 }
-
-// function sendOnUnload() {
-// 	if (Cookies.get("user")){
-// 		if (client.isConnected()) client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
-// 		setTimeout(() => console.log("logout prompt send in"), 2000)
-// 	}
-// 	return null;
-// }
-
 window.addEventListener("beforeunload", onUnload, false)
-//window.addEventListener("beforeunload", sendOnUnload, false)
 
+// funkcja losująca 256-bitową liczbę do autoryzacji ciasteczek
 function rnd256() {
 	const bytes = new Uint8Array(32)
 	window.crypto.getRandomValues(bytes)
 	const bytesHex = bytes.reduce((o, v) => o + ('00' + v.toString(16)).slice(-2), '');
   
-	// convert hexademical value to a decimal string
 	return BigInt('0x' + bytesHex).toString(10);
   }
 
 console.log(rnd256().length)  
 
+
+// cookie auth
 if (Cookies.get('user') && Cookies.get('auth')) {
 	axios.get(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
 	.then(async res => {
@@ -88,6 +65,8 @@ else {
     console.log("Nikt nie jest zalogowany")
 }
 
+// powrót do lobby po odświeżeniu / wyjsciu ( nie działa z lobby.closed )
+
 if (Cookies.get('lobby')) {
     axios.get(`http://localhost:5000/lobbies/${Cookies.get('lobby')}`)
     .then(async res => {
@@ -97,6 +76,8 @@ if (Cookies.get('lobby')) {
         board.style.display = "block"
 		axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
 		.then(res => {
+			lobby.getElementsByClassName("updatelobby")[0].style.display = "block"
+			lobby.getElementsByClassName("updatelobby")[1].style.display = "block"
 			const options = {
 				timeout: 3,
 				onSuccess: onConnect,
@@ -113,11 +94,21 @@ if (Cookies.get('lobby')) {
 			MQTTconnect(options)
 		})
     })
-    .catch(rej => {
-        console.log("Pokój już nie istnieje")
-        Cookies.remove('lobby')
+    .catch(async rej => {
+		axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
+		.then(async res => {
+			await axios.delete(`http://localhost:5000/lobbies/${Cookies.get('user')}`)
+			console.log(rej)
+        	Cookies.remove('lobby')
+		})
+		.catch(rej => {
+			console.log(rej)
+        	Cookies.remove('lobby')
+		})
     })
 }
+
+// generowanie listy pokoi
 
 async function lobbyListGenerate(lobbies) {
 	const lobbylist = dashboard.getElementsByClassName("lobbylist")[0]
@@ -148,6 +139,8 @@ async function lobbyListGenerate(lobbies) {
 			}
 		})
 }
+
+// logowanie
 
 async function formSubmit() {
     Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
@@ -183,6 +176,8 @@ async function formSubmit() {
 
 }
 
+// wylogowywanie
+
 async function logout() {
     Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
     await axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
@@ -192,6 +187,8 @@ async function logout() {
     logoutButton.parentElement.style.display = "none"
     main.style.display = "grid"
 }
+
+// rejestracja
 
 async function addUser() {
     Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
@@ -226,10 +223,14 @@ async function addUser() {
     }
 }
 
+// przejscie do ekranu rejestracji
+
 function moveToRegister() {
     main.style.display = "none"
     register.style.display = "grid"
 }
+
+// tworzenie nowego lobby
 
 async function newLobbyHandler() {
     axios.post("http://localhost:5000/lobbies/newlobby", {
@@ -259,6 +260,8 @@ async function newLobbyHandler() {
     })
 }
 
+// dołączanie do lobby
+
 async function joinLobbyHandler(name) {
     // const name = dashboard.getElementsByTagName("input")[0].value
     axios.get(`http://localhost:5000/lobbies/${name}`)
@@ -284,6 +287,8 @@ async function joinLobbyHandler(name) {
     })
 }
 
+// wysyłanie wiadomości
+
 const sendMsgHandler = () => {
     console.log("im here")
     const name = lobby.getElementsByClassName("lobbyname")[0].textContent
@@ -292,6 +297,8 @@ const sendMsgHandler = () => {
     client.send(`warships/${name}/chat/${Cookies.get("user")}/msg`, msg)
 	lobby.getElementsByClassName("msg")[0].value = ""
 }
+
+// wychodzenie z lobby
 
 const leaveLobbyHandler = async () => {
     const username = Cookies.get('user')
@@ -320,6 +327,8 @@ const leaveLobbyHandler = async () => {
     })
 }
 
+// zmiana nazwy lobby
+
 async function changeLobbyNameHandler() {
 	Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
 	const oldname = Cookies.get("lobby")
@@ -336,15 +345,8 @@ async function changeLobbyNameHandler() {
     	client.subscribe(`warships/${newname}/game/#`)
 	})
 }
-// function reload() {
-// 	const head = document.getElementsByTagName('head')[0]
-// 	const script = document.createElement('script')
-// 	script.src = "js/skrypt.js"  
-// 	script.defer = true
-// 	script.type = "module"
-// 	head.appendChild(script)
-// 	console.log("reloading?")
-//   }
+
+// filtrowanie pokoi
 
 async function filterLobbies() {
 	const name = dashboard.getElementsByTagName("input")[0].value
@@ -357,16 +359,22 @@ async function filterLobbies() {
 	}
 }
 
+// przejscie do ustawien
+
 function settingsHandler() {
 	dashboard.style.display = "none"
 	board.style.display = "none"
 	settings.style.display = "grid"
 }
 
+// powrot do dashboard
+
 function returnHandler() {
 	settings.style.display = "none"
 	dashboard.style.display = "grid"
 }
+
+// zmiana nazwy użytkownika
 
 async function changeNameHandler() {
 	Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
@@ -386,6 +394,8 @@ async function changeNameHandler() {
 		settings.getElementsByClassName("login")[0].style.display = "block"
 	})
 }
+
+// zmiana hasła
 
 async function changePassHandler() {
 	Array.prototype.forEach.call(document.getElementsByClassName("error"), (error) => error.style.display = "none")
@@ -412,10 +422,14 @@ async function changePassHandler() {
 	}
 }
 
+// powrót do ekranu logowania
+
 function returnToMainHandler() {
 	register.style.display = "none"
 	main.style.display = "grid"
 }
+
+// przyciski i ich eventy
 
 const loginButton = main.getElementsByClassName("submit")[0]
 const newUserButton = main.getElementsByClassName("register")[0]
@@ -447,6 +461,9 @@ newUserButton.addEventListener("click", moveToRegister, false)
 searchLobbyButton.addEventListener("click", filterLobbies, false)
 leaveLobbyButton.addEventListener("click", leaveLobbyHandler, false)
 
+// ------------  MQTT --------------
+
+// on connect dla dołączających
 
 const onJoin = () => {
 	const lobbyname = Cookies.get('lobby')
@@ -458,6 +475,8 @@ const onJoin = () => {
 	console.log(`subscribed to warships/${lobbyname}/game/#`)
 	client.send(`warships/${lobbyname}/chat/${username}/connected`, "connected")
 }
+
+// onconnect dla hosta
 
 const onConnect = () => {
     const lobbyname = Cookies.get('lobby')
@@ -473,6 +492,8 @@ const onFailure = (msg) => {
     console.log("Connection attempt to host 127.0.0.1 failed.")
     setTimeout(MQTTconnect, reconnectTimeout)
 }
+
+// obsługa wiadomości
 
 const onMessageArrived = (msg) => {
 	console.log(msg.destinationName, msg.payloadString)
@@ -609,11 +630,6 @@ const onMessageArrived = (msg) => {
 					setTimeout(startGame, 500)
 					
 			}
-            // // Check if it's the end of the game
-            // if (cpuFleet.ships.length == 0) {
-            //      $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
-    
-            //  } else setTimeout(bot.select, 800);
         }
 		else {
 			
@@ -637,11 +653,13 @@ const MQTTconnect = (options) => {
     client.connect(options)
 }
 
-// Variables
+// ----------- BATTLESHIPS ---------------
+
+// zmienne
 var playerFleet, cpuFleet; // flota własna i przeciwnika
 var attemptedHits = []; // ??
 
-// Object Constructors
+// Konstruktor floty
 function Fleet(name) {
 	this.name = name;
 	this.shipDetails = [{ "name": "carrier", "length": 5 },
@@ -680,6 +698,8 @@ function Fleet(name) {
 		return false;
 	};
 }
+
+// Konstruktor statku
 
 function Ship(name){
 	this.name = name;
@@ -724,7 +744,6 @@ var output = {
     "won": " >Enemy's fleet is sunk.  You won!"
 };
 
-// Objects for playing the game and bot for playing the computer
 // plansza przeciwnika
 var topBoard = {
 	allHits: [], // wszystkie trafienia ?
@@ -740,67 +759,12 @@ var topBoard = {
                 const lobbyname = Cookies.get('lobby')
                 const username = Cookies.get('user')
                 client.send(`warships/${lobbyname}/game/${username}/shot`, `${num}`)
-				// var bool = cpuFleet.checkIfHit(num); // sprawdza, czy w flocie przeciwnika jest trafienie ( MQTT )
-				// if (false == bool) {
-				// 	$(".text").text(output.miss("You")); // wypisuje wiadomość o pudle
-				// 	$(this).children().addClass("miss"); // nadaje polu klasę "niewypału"
-				// } else $(this).children().addClass("hit"); // nadaje polu klasę trafiony
-				// $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
-				// // Check if it's the end of the game
-				// if (cpuFleet.ships.length == 0) {
- 				// 	$(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
-
- 				// } else setTimeout(bot.select, 800);
-			} // end of if
+			} 
 		});
 	},
 }
-// plansza gracza
-var bottomBoard = {
-	currentHits: [], // obecnie trafienia ?
-	checkAttempt: function(hit) {
-		if (playerFleet.checkIfHit(hit)) { // sprawdza czy strzał trafił
-			// Insert hit into an array for book keeping
-			bottomBoard.currentHits.push(hit); // wrzuca pole do listy trafionych, for some reason
-      if (this.currentHits.length > 1) bot.prev_hit = true; // 
-			// display hit on the grid
-			$(".bottom").find("." + hit).children().addClass("hit"); // wyświetla trafienie na planszy
-			if (bottomBoard.hasShipBeenSunk()) { // some bot ai shit, jeśli statek został zatopiony
-				// clear flags
-				bot.hunting = bot.prev_hit = false;
-				if (bot.sizeOfShipSunk == bottomBoard.currentHits.length) { // some bot ai shit ( MQTT wysyła info o trafieniu)
-					bot.num_misses = bot.back_count = bot.nextMove.length = bottomBoard.currentHits.length = bot.sizeOfShipSunk = bot.currrent = 0;
-				} else {
-					bot.special =  bot.case1 = true;
-				}
-				// check for special cases
-				if (bot.specialHits.length > 0) bot.special = true;
-				// check for end of game.	
-			}
-			return true;
-		} else {
-			$(".bottom").find("." + hit).children().addClass("miss"); // zaznacza pole jako nietrafione
-			bot.current = bottomBoard.currentHits[0];
-			bot.prev_hit = false;
-			if (bottomBoard.currentHits.length > 1) { // some bot ai shit ( MQTT wysyła info o nietrafieniu)
-				bot.back = true;
-				bot.num_misses++;
-			}
-			if (bot.case2) {
-				bot.special = true;
-				bot.case2 = false;
-			}
-			return false;
-		}
-	},
 
-	hasShipBeenSunk: function() {
-		if (bot.sizeOfShipSunk > 0) return true; // ?
-		else return false;
-	}
-}
-
-//  Create the games grids and layout
+//  Tworzenie planszy
 playerFleet = new Fleet("Player 1");
 playerFleet.initShips();
 $(document).ready(function() {
@@ -827,9 +791,6 @@ $(document).ready(function() {
 	$(".text").text(output.wait); // przywitanie
 })
 
-// Start the game setup
-// tutaj jest menu - być może niepotrzebne?
-
 // wybór układania
 function gameSetup(t) {
 	$(t).off() && $(".two").off();
@@ -847,23 +808,17 @@ function gameSetup(t) {
 	});
 }
 
-
+// samo układanie
 function selfSetup() {
 	$(".self").addClass("horz").removeClass("self").text("Horizontal");
 	$(".random").addClass("vert").removeClass("random").text("Vertical");
-	
-	// initialize the fleet
-	//playerFleet = new Fleet("Player 1"); // tworzenie nowej floty ( MQTT - nazwa użytkownika here)
-	//playerFleet.initShips(); // zainicjowanie statków
-	// light up the players ship board for placement
 	placeShip(playerFleet.ships[playerFleet.currentShip], playerFleet);
 }
 
+// losowe układanie
+
 function randomSetup(fleet) {
-	// Decide if the ship will be placed vertically or horizontally 
-	// if 0 then ship will be places horizontally if 1 vertically
-	// setShip(location, ship, "vert", fleet, "self");
-	if (fleet.currentShip >= fleet.numOfShips) return; // regard against undefined length
+	if (fleet.currentShip >= fleet.numOfShips) return;
 	
 	var orien = Math.floor((Math.random() * 10) + 1);
 	var length = fleet.ships[fleet.currentShip].length;
@@ -990,7 +945,6 @@ function setShip(location, ship, orientation, genericFleet, type) { // ustawieni
 			if (++genericFleet.currentShip == genericFleet.numOfShips) {
 				$(".text").text(output.placed("ships have"));
 				$(".bottom").find(".points").off("mouseenter");
-				// clear the call stack
 				setTimeout(createCpuFleet, 100);
 			} else {
 				if (type == "random") randomSetup(genericFleet);
@@ -1001,7 +955,7 @@ function setShip(location, ship, orientation, genericFleet, type) { // ustawieni
 		if (type == "random") randomSetup(genericFleet);
 		else $(".text").text(output.overlap);
 	}
- } // end of setShip()
+ } 
 
  function checkOverlap(location, length, orientation, genFleet) { // sprawdzanie nakładania się pozycji
  	var loc = location;
@@ -1013,8 +967,8 @@ function setShip(location, ship, orientation, genericFleet, type) { // ustawieni
 	 				if (genFleet == cpuFleet) randomSetup(genFleet); // jeśli flota AI, to losuje inną pozycję
 	 				else return true;
 	 			}
-	 		} // end of for loop
-	 	} // end of for loop
+	 		} 
+	 	} 
 	 } else { 		// dla orientacji pionowej
 	 	var end = location + (10 * length);
 	 	for (; location < end; location += 10) {
@@ -1025,14 +979,12 @@ function setShip(location, ship, orientation, genericFleet, type) { // ustawieni
 	 			}
 	 		}
 	 	}
-	 } // end of if/else 
+	 } 
 	if (genFleet == cpuFleet && genFleet.currentShip < genFleet.numOfShips) {
 		if (orientation == "horz") genFleet.ships[genFleet.currentShip++].populateHorzHits(loc);
 	 	else genFleet.ships[genFleet.currentShip++].populateVertHits(loc);
 	 	if (genFleet.currentShip == genFleet.numOfShips) {
 			console.log("CURRENT SHIP", genFleet.currentShip)
-	 		// clear the call stack
-	 		//setTimeout(startGame, 500);
 			client.send(`warships/${Cookies.get('lobby')}/game/${Cookies.get('user')}/check`, "check")
 			$(".text").text(output.waitForOpponent)
 	 	} else {
@@ -1042,7 +994,7 @@ function setShip(location, ship, orientation, genericFleet, type) { // ustawieni
 		 } 
 	 }
 	return false;
- } // end of checkOverlap()
+ } 
 
 
 function startGame() {
@@ -1050,8 +1002,6 @@ function startGame() {
  		$(".console").css( { "margin-top" : "31px" } );
  	});
  	$(".text").text(output.start); // rozpoczęcie gry, wyświetlenie info
- 	// Generate all possible hits for Player 1
-	 // losuje pola dla bota do strzelania
  	highlightBoard();
  }
 
