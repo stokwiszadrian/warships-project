@@ -30,7 +30,8 @@ client
     CREATE TABLE IF NOT EXISTS lobbies (
         id SERIAL PRIMARY KEY,
         owner VARCHAR(60) UNIQUE NOT NULL,
-        name VARCHAR(60) NOT NULL
+        name VARCHAR(60) NOT NULL,
+        closed BOOLEAN NOT NULL
     );
 
     CREATE TABLE IF NOT EXISTS cookieauth (

@@ -32803,11 +32803,12 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
               dashboard.style.display = "block";
               main.getElementsByClassName("error")[0].style.display = "none";
               dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
+              lobbyListGenerate();
               console.log(_jsCookie["default"].get('user'));
-              _context.next = 7;
+              _context.next = 8;
               return _axios["default"]["delete"]("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth')));
 
-            case 7:
+            case 8:
               _jsCookie["default"].set('user', _jsCookie["default"].get('user'), {
                 expires: 7
               });
@@ -32816,19 +32817,19 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
                 expires: 7
               });
 
-              _context.next = 11;
+              _context.next = 12;
               return _axios["default"].post('http://localhost:5000/cookieauth', {
                 user: _jsCookie["default"].get('user'),
                 authnum: _jsCookie["default"].get('auth')
               });
 
-            case 11:
-              _context.next = 13;
+            case 12:
+              _context.next = 14;
               return _axios["default"].patch("http://localhost:5000/users/login", {
                 login: _jsCookie["default"].get('user')
               });
 
-            case 13:
+            case 14:
             case "end":
               return _context.stop();
           }
@@ -32892,16 +32893,74 @@ if (_jsCookie["default"].get('lobby')) {
   });
 }
 
+function lobbyListGenerate() {
+  return _lobbyListGenerate.apply(this, arguments);
+}
+
+function _lobbyListGenerate() {
+  _lobbyListGenerate = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6() {
+    var lobbylist, firstentry, lobbies;
+    return _regenerator["default"].wrap(function _callee6$(_context6) {
+      while (1) {
+        switch (_context6.prev = _context6.next) {
+          case 0:
+            lobbylist = dashboard.getElementsByClassName("lobbylist")[0];
+
+            while (lobbylist.firstChild) {
+              lobbylist.removeChild(lobbylist.firstChild);
+            }
+
+            firstentry = document.createElement('div');
+            firstentry.className = 'lobbylisting entry';
+            lobbylist.appendChild(firstentry);
+            _context6.next = 7;
+            return _axios["default"].get("http://localhost:5000/lobbies");
+
+          case 7:
+            lobbies = _context6.sent.data;
+            console.log(lobbies);
+            lobbies.forEach(function (lobbylisting) {
+              if (!lobbylisting.closed) {
+                var lastLobbyListing = Array.prototype.at.call(lobbylist.getElementsByClassName("lobbylisting"), -1);
+                var newlobby = document.createElement('div');
+                newlobby.setAttribute('class', "lobbylisting ".concat(lobbylisting.owner));
+                var lobbyname = document.createElement('h4');
+                lobbyname.textContent = lobbylisting.name;
+                var lobbyowner = document.createElement('h5');
+                lobbyowner.textContent = lobbylisting.owner;
+                var joinbutton = document.createElement('button');
+                joinbutton.type = 'button';
+                joinbutton.textContent = 'join';
+                joinbutton.addEventListener('click', function () {
+                  return console.log(joinbutton.parentElement.className);
+                }, false);
+                newlobby.appendChild(lobbyname);
+                newlobby.appendChild(lobbyowner);
+                newlobby.appendChild(joinbutton);
+                lastLobbyListing.parentElement.insertBefore(newlobby, lastLobbyListing.nextSibling);
+              }
+            });
+
+          case 10:
+          case "end":
+            return _context6.stop();
+        }
+      }
+    }, _callee6);
+  }));
+  return _lobbyListGenerate.apply(this, arguments);
+}
+
 function formSubmit() {
   return _formSubmit.apply(this, arguments);
 }
 
 function _formSubmit() {
-  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
+  _formSubmit = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8() {
     var credentials;
-    return _regenerator["default"].wrap(function _callee5$(_context5) {
+    return _regenerator["default"].wrap(function _callee8$(_context8) {
       while (1) {
-        switch (_context5.prev = _context5.next) {
+        switch (_context8.prev = _context8.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -32914,50 +32973,16 @@ function _formSubmit() {
             main.getElementsByTagName("input")[1].value = "";
 
             _axios["default"].post("http://localhost:5000/users/login", credentials).then( /*#__PURE__*/function () {
-              var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(res) {
-                var lobbylist, firstentry, lobbies;
-                return _regenerator["default"].wrap(function _callee4$(_context4) {
+              var _ref6 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7(res) {
+                return _regenerator["default"].wrap(function _callee7$(_context7) {
                   while (1) {
-                    switch (_context4.prev = _context4.next) {
+                    switch (_context7.prev = _context7.next) {
                       case 0:
                         main.style.display = "none";
                         dashboard.style.display = "block";
                         main.getElementsByClassName("error")[0].style.display = "none";
                         dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
-                        lobbylist = dashboard.getElementsByClassName("lobbylist")[0];
-
-                        while (lobbylist.firstChild) {
-                          lobbylist.removeChild(lobbylist.firstChild);
-                        }
-
-                        firstentry = document.createElement('div');
-                        firstentry.className = 'lobbylisting entry';
-                        lobbylist.appendChild(firstentry);
-                        _context4.next = 11;
-                        return _axios["default"].get("http://localhost:5000/lobbies");
-
-                      case 11:
-                        lobbies = _context4.sent.data;
-                        console.log(lobbies);
-                        lobbies.forEach(function (lobbylisting) {
-                          var lastLobbyListing = Array.prototype.at.call(lobbylist.getElementsByClassName("lobbylisting"), -1);
-                          var newlobby = document.createElement('div');
-                          newlobby.setAttribute('class', "lobbylisting ".concat(lobbylisting.owner));
-                          var lobbyname = document.createElement('h4');
-                          lobbyname.textContent = lobbylisting.name;
-                          var lobbyowner = document.createElement('h5');
-                          lobbyowner.textContent = lobbylisting.owner;
-                          var joinbutton = document.createElement('button');
-                          joinbutton.type = 'button';
-                          joinbutton.textContent = 'join';
-                          joinbutton.addEventListener('click', function () {
-                            return console.log(joinbutton.parentElement.className);
-                          }, false);
-                          newlobby.appendChild(lobbyname);
-                          newlobby.appendChild(lobbyowner);
-                          newlobby.appendChild(joinbutton);
-                          lastLobbyListing.parentElement.insertBefore(newlobby, lastLobbyListing.nextSibling);
-                        });
+                        lobbyListGenerate();
 
                         _jsCookie["default"].set('user', credentials.login, {
                           expires: 7
@@ -32967,22 +32992,22 @@ function _formSubmit() {
                           expires: 7
                         });
 
-                        _context4.next = 18;
+                        _context7.next = 9;
                         return _axios["default"].post("http://localhost:5000/cookieauth", {
                           user: _jsCookie["default"].get('user'),
                           authnum: _jsCookie["default"].get('auth')
                         });
 
-                      case 18:
+                      case 9:
                       case "end":
-                        return _context4.stop();
+                        return _context7.stop();
                     }
                   }
-                }, _callee4);
+                }, _callee7);
               }));
 
-              return function (_x3) {
-                return _ref4.apply(this, arguments);
+              return function (_x5) {
+                return _ref6.apply(this, arguments);
               };
             }())["catch"](function (rej) {
               if (rej.response.status == 401) {
@@ -32994,10 +33019,10 @@ function _formSubmit() {
 
           case 5:
           case "end":
-            return _context5.stop();
+            return _context8.stop();
         }
       }
-    }, _callee5);
+    }, _callee8);
   }));
   return _formSubmit.apply(this, arguments);
 }
@@ -33007,21 +33032,21 @@ function logout() {
 }
 
 function _logout() {
-  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee6() {
-    return _regenerator["default"].wrap(function _callee6$(_context6) {
+  _logout = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9() {
+    return _regenerator["default"].wrap(function _callee9$(_context9) {
       while (1) {
-        switch (_context6.prev = _context6.next) {
+        switch (_context9.prev = _context9.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
             });
-            _context6.next = 3;
+            _context9.next = 3;
             return _axios["default"].patch("http://localhost:5000/users/logout", {
               login: _jsCookie["default"].get('user')
             });
 
           case 3:
-            _context6.next = 5;
+            _context9.next = 5;
             return _axios["default"]["delete"]("http://localhost:5000/cookieauth/".concat(_jsCookie["default"].get('user'), "/").concat(_jsCookie["default"].get('auth')));
 
           case 5:
@@ -33034,10 +33059,10 @@ function _logout() {
 
           case 9:
           case "end":
-            return _context6.stop();
+            return _context9.stop();
         }
       }
-    }, _callee6);
+    }, _callee9);
   }));
   return _logout.apply(this, arguments);
 }
@@ -33047,11 +33072,11 @@ function addUser() {
 }
 
 function _addUser() {
-  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee7() {
+  _addUser = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10() {
     var login, pass1, pass2, hash, credentials;
-    return _regenerator["default"].wrap(function _callee7$(_context7) {
+    return _regenerator["default"].wrap(function _callee10$(_context10) {
       while (1) {
-        switch (_context7.prev = _context7.next) {
+        switch (_context10.prev = _context10.next) {
           case 0:
             Array.prototype.forEach.call(document.getElementsByClassName("error"), function (error) {
               return error.style.display = "none";
@@ -33086,10 +33111,10 @@ function _addUser() {
 
           case 5:
           case "end":
-            return _context7.stop();
+            return _context10.stop();
         }
       }
-    }, _callee7);
+    }, _callee10);
   }));
   return _addUser.apply(this, arguments);
 }
@@ -33104,10 +33129,10 @@ function newLobbyHandler() {
 }
 
 function _newLobbyHandler() {
-  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee8() {
-    return _regenerator["default"].wrap(function _callee8$(_context8) {
+  _newLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee11() {
+    return _regenerator["default"].wrap(function _callee11$(_context11) {
       while (1) {
-        switch (_context8.prev = _context8.next) {
+        switch (_context11.prev = _context11.next) {
           case 0:
             _axios["default"].post("http://localhost:5000/lobbies/newlobby", {
               owner: _jsCookie["default"].get('user'),
@@ -33135,10 +33160,10 @@ function _newLobbyHandler() {
 
           case 1:
           case "end":
-            return _context8.stop();
+            return _context11.stop();
         }
       }
-    }, _callee8);
+    }, _callee11);
   }));
   return _newLobbyHandler.apply(this, arguments);
 }
@@ -33148,39 +33173,63 @@ function joinLobbyHandler() {
 }
 
 function _joinLobbyHandler() {
-  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee9() {
+  _joinLobbyHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee13() {
     var name;
-    return _regenerator["default"].wrap(function _callee9$(_context9) {
+    return _regenerator["default"].wrap(function _callee13$(_context13) {
       while (1) {
-        switch (_context9.prev = _context9.next) {
+        switch (_context13.prev = _context13.next) {
           case 0:
             name = dashboard.getElementsByTagName("input")[0].value;
 
-            _axios["default"].get("http://localhost:5000/lobbies/".concat(name)).then(function (res) {
-              _jsCookie["default"].set('lobby', res.data.name);
+            _axios["default"].get("http://localhost:5000/lobbies/".concat(name)).then( /*#__PURE__*/function () {
+              var _ref7 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee12(res) {
+                var options;
+                return _regenerator["default"].wrap(function _callee12$(_context12) {
+                  while (1) {
+                    switch (_context12.prev = _context12.next) {
+                      case 0:
+                        _jsCookie["default"].set('lobby', res.data.name);
 
-              console.log(res, "niby się udało");
-              lobby.getElementsByClassName("lobbyname")[0].textContent = res.data.name;
-              dashboard.style.display = "none";
-              lobby.style.display = "block";
-              board.style.display = "block";
-              var options = {
-                timeout: 3,
-                onSuccess: onJoin,
-                onFailure: onFailure
+                        console.log(res, "niby się udało");
+                        lobby.getElementsByClassName("lobbyname")[0].textContent = res.data.name;
+                        dashboard.style.display = "none";
+                        lobby.style.display = "block";
+                        board.style.display = "block";
+                        _context12.next = 8;
+                        return _axios["default"].patch("http://localhost:5000/lobbies/closed", {
+                          name: res.data.name
+                        });
+
+                      case 8:
+                        options = {
+                          timeout: 3,
+                          onSuccess: onJoin,
+                          onFailure: onFailure
+                        };
+                        MQTTconnect(options); // window.location.reload()
+
+                      case 10:
+                      case "end":
+                        return _context12.stop();
+                    }
+                  }
+                }, _callee12);
+              }));
+
+              return function (_x6) {
+                return _ref7.apply(this, arguments);
               };
-              MQTTconnect(options); // window.location.reload()
-            })["catch"](function (rej) {
+            }())["catch"](function (rej) {
               dashboard.getElementsByClassName("nojoinlobby")[0].style.display = "block";
               console.log(rej.response);
             });
 
           case 2:
           case "end":
-            return _context9.stop();
+            return _context13.stop();
         }
       }
-    }, _callee9);
+    }, _callee13);
   }));
   return _joinLobbyHandler.apply(this, arguments);
 }
@@ -33195,43 +33244,83 @@ var sendMsgHandler = function sendMsgHandler() {
 };
 
 var leaveLobbyHandler = /*#__PURE__*/function () {
-  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee5() {
     var username, name;
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
+    return _regenerator["default"].wrap(function _callee5$(_context5) {
       while (1) {
-        switch (_context3.prev = _context3.next) {
+        switch (_context5.prev = _context5.next) {
           case 0:
             username = _jsCookie["default"].get('user');
             name = lobby.getElementsByClassName("lobbyname")[0].textContent;
 
             _jsCookie["default"].remove('lobby');
 
-            _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(username)).then(function (res) {
-              console.log("Owner left");
+            _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(username)).then( /*#__PURE__*/function () {
+              var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3(res) {
+                return _regenerator["default"].wrap(function _callee3$(_context3) {
+                  while (1) {
+                    switch (_context3.prev = _context3.next) {
+                      case 0:
+                        console.log("Owner left");
 
-              _axios["default"]["delete"]("http://localhost:5000/lobbies/".concat(username)).then(function (res) {
-                client.send("warships/".concat(name, "/chat/").concat(username, "/end"), "end");
-                window.location.reload();
-              })["catch"](function (rej) {
-                return console.log(rej);
-              });
-            })["catch"](function (rej) {
-              console.log("user left");
-              lobby.style.display = "none";
-              board.style.display = "none";
-              dashboard.style.display = "block";
-              client.send("warships/".concat(name, "/chat/").concat(username, "/dc"), "dc");
-              console.log(client.isConnected());
-              client.disconnect();
-              window.location.reload();
-            });
+                        _axios["default"]["delete"]("http://localhost:5000/lobbies/".concat(username)).then(function (res) {
+                          client.send("warships/".concat(name, "/chat/").concat(username, "/end"), "end");
+                          window.location.reload();
+                        })["catch"](function (rej) {
+                          return console.log(rej);
+                        });
+
+                      case 2:
+                      case "end":
+                        return _context3.stop();
+                    }
+                  }
+                }, _callee3);
+              }));
+
+              return function (_x3) {
+                return _ref4.apply(this, arguments);
+              };
+            }())["catch"]( /*#__PURE__*/function () {
+              var _ref5 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(rej) {
+                return _regenerator["default"].wrap(function _callee4$(_context4) {
+                  while (1) {
+                    switch (_context4.prev = _context4.next) {
+                      case 0:
+                        console.log("user left");
+                        _context4.next = 3;
+                        return _axios["default"].patch("http://localhost:5000/lobbies/open", {
+                          name: name
+                        });
+
+                      case 3:
+                        lobby.style.display = "none";
+                        board.style.display = "none";
+                        dashboard.style.display = "block";
+                        client.send("warships/".concat(name, "/chat/").concat(username, "/dc"), "dc");
+                        console.log(client.isConnected());
+                        client.disconnect();
+                        window.location.reload();
+
+                      case 10:
+                      case "end":
+                        return _context4.stop();
+                    }
+                  }
+                }, _callee4);
+              }));
+
+              return function (_x4) {
+                return _ref5.apply(this, arguments);
+              };
+            }());
 
           case 4:
           case "end":
-            return _context3.stop();
+            return _context5.stop();
         }
       }
-    }, _callee3);
+    }, _callee5);
   }));
 
   return function leaveLobbyHandler() {
@@ -33253,11 +33342,11 @@ function changeLobbyNameHandler() {
 
 
 function _changeLobbyNameHandler() {
-  _changeLobbyNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10() {
+  _changeLobbyNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee14() {
     var oldname, newname;
-    return _regenerator["default"].wrap(function _callee10$(_context10) {
+    return _regenerator["default"].wrap(function _callee14$(_context14) {
       while (1) {
-        switch (_context10.prev = _context10.next) {
+        switch (_context14.prev = _context14.next) {
           case 0:
             oldname = _jsCookie["default"].get("lobby");
             newname = lobby.getElementsByClassName("newname")[0].value;
@@ -33279,10 +33368,10 @@ function _changeLobbyNameHandler() {
 
           case 3:
           case "end":
-            return _context10.stop();
+            return _context14.stop();
         }
       }
-    }, _callee10);
+    }, _callee14);
   }));
   return _changeLobbyNameHandler.apply(this, arguments);
 }
@@ -33314,6 +33403,8 @@ var onJoin = function onJoin() {
   console.log("Connected, id:", lobbyname, username);
   client.subscribe("warships/".concat(lobbyname, "/chat/#"));
   client.subscribe("warships/".concat(lobbyname, "/game/#"));
+  console.log("subscribed to warships/".concat(lobbyname, "/chat/#"));
+  console.log("subscribed to warships/".concat(lobbyname, "/game/#"));
   client.send("warships/".concat(lobbyname, "/chat/").concat(username, "/connected"), "connected");
 };
 
@@ -33325,6 +33416,8 @@ var onConnect = function onConnect() {
   console.log("Connected, id:", lobbyname, username);
   client.subscribe("warships/".concat(lobbyname, "/chat/#"));
   client.subscribe("warships/".concat(lobbyname, "/game/#"));
+  console.log("subscribed to warships/".concat(lobbyname, "/chat/#"));
+  console.log("subscribed to warships/".concat(lobbyname, "/game/#"));
 };
 
 var onFailure = function onFailure(msg) {

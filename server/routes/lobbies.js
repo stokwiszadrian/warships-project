@@ -14,7 +14,7 @@ router.post("/newlobby", async (req, res) => {
         return res.status(500).send("USER_NOT_FOUND")
     }
 
-    const newlobby = await client.query(`INSERT INTO lobbies (owner, name) VALUES ($1, $2) RETURNING *`, [data.owner, data.name])
+    const newlobby = await client.query(`INSERT INTO lobbies (owner, name, closed) VALUES ($1, $2, FALSE) RETURNING *`, [data.owner, data.name])
     console.log(`lobby ${data.name} has been added`)
     return res.send(newlobby.rows[0])
 })
@@ -44,6 +44,20 @@ router.delete("/:owner", async (req, res) => {
 router.patch("/newname", async (req, res) => {
     const data = req.body
     const update = await client.query("UPDATE lobbies SET name = $1 WHERE name = $2", [ data.newName, data.oldName ])
+    res.sendStatus(200)
+})
+
+router.patch("/closed", async (req, res) => {
+    const data = req.body
+    const update = await client.query("UPDATE lobbies SET closed=TRUE WHERE name = $1", [ data.name ])
+    console.log(update, data.name)
+    res.sendStatus(200)
+})
+
+router.patch("/open", async (req, res) => {
+    const data = req.body
+    const update = await client.query("UPDATE lobbies SET closed=FALSE WHERE name = $1", [ data.name ])
+    console.log(update, data.name)
     res.sendStatus(200)
 })
 
