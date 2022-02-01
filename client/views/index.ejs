@@ -16,76 +16,70 @@
       <span class="loginfo">Sign in</span>
       <input type="text" placeholder="Username">
       <button type="button" class="submit">Sign in</button>
-      <h2 class="error wrongcredentials">Niepoprawne dane użytkownika</h4>
-      <h2 class="error loggedin">Użytkownik jest już zalogowany na innym urządzeniu</h4>
+      <h2 class="error wrongcredentials">Wrong user credentials</h4>
+      <h2 class="error loggedin">User already logged in on another device</h4>
       <input type="password" placeholder="Password">
       <button class="register">Register</button>
   </div>
   <div id="register">
-    <h2>Zarejestruj się</h2>
-    <form name="registerform">
-      POWRÓT
+    <button class="return">Return</button>
+    <h2 class="title">Register</h2>
       <label>
-        Nazwa użytkownika:
+        Username:
         <input type="text" required>
       </label>
       <label>
-        Hasło:
+        Password:
         <input type="password" required>
       </label>
       <label>
-        Powtórz hasło:
+        Confirm password:
         <input type="password" required>
       </label>
-      <br>
-      <button type="button" class="submit">Zarejestruj</button>
-    </form>
-    <h4 class="error login">Nazwa użytkownika jest już zajęta</h4>
-    <h4 class="error inputs">Wszystkie pola są wymagane</h4>
-    <h4 class="error wrongpass">Hasło i powtórzone hasło różnią się od siebie!</h4>
+      <button type="button" class="submit">Sign up</button>
+    <h4 class="error login">Username already taken</h4>
+    <h4 class="error inputs">All fields are required</h4>
+    <h4 class="error wrongpass">New password and confirmed password don't match!</h4>
   </div>
   <div id="dashboard">
-    <h1 class="title">DASHBOARD</h1>
-    <button class="logout">Wyloguj się</button>
+    <span class="usergreeting"></span>
+    <button class="logout">Log out</button>
     <button class="newlobby">New lobby</button>
     <button class="settings">Account settings</button>
-    <h4 class="error nonewlobby">Nie udało się utworzyć pokoju</h2>
-    <label>
-      Search by lobby name:
-      <input type="text">
-    </label>
+    <h4 class="error nonewlobby">An error occurred while creating a lobby</h2>
+    <input type="text" placeholder="Lobby name">
     <button type="button" class="submit">Search</button>
-    <h4 class="error nojoinlobby">Nie udało się znaleźć pokoju</h4>
-    <h2 class="usergreeting"></h2>
+    <h4 class="error nojoinlobby">Unable to join the lobby</h4>
     <div class="lobbylist">
       <div class="lobbylisting entry"></div>
     </div>
   </div>
   <div id="settings">
-    <h2>SETTINGS</h2>
     <button class="settingsreturn">Return</button>
+    <h2 class="title">SETTINGS</h2>
     <label>
       Change your account name:
-      <input type="text" class="name">
+      <input type="text" class="name" placeholder="New username">
       <button type="button" class="changename">Confirm</button>
     </label>
-    <h4 class="error login">Nazwa użytkownika jest już zajęta</h4>
-    <h4>Change your password</h4>
+    <label class="changenamelabel">
+      <h4 class="error login">Nazwa użytkownika jest już zajęta</h4>
+    </label>
     <label>
       Current password
       <input type="password" class="oldpass">
+      <button type="button" class="changepass">Confirm</button>
     </label>
     <label>
       New password
       <input type="password" class="newpass1">
     </label>
     <label>
-      Confirm new password password
+      Confirm new password
       <input type="password" class="newpass2">
     </label>
-    <button type="button" class="changepass">Confirm</button>
     <h4 class="error wrongpass">New password and confirmed password don't match!</h4>
-    <h4 class="error authfail">Given current password is wrong!</h4>
+    <h4 class="error authfail">Incorrect current password!</h4>
   </div>
   <div id="lobby">
     <div id="main">
@@ -110,15 +104,17 @@
           <span class='text'></span></div>
       </div>
     </div>
-    <button type="button" class="leave">Wyjdź z lobby</button>
-    <h2 class="lobbyname"></h2>
-    <input type="text" class="updatelobby newname">
-    <button type="button" class="updatelobby setnewname">Set new name</button>
-    <div class="messagebox">
-      <div class="message 1">Messages will be here</div>
+    <div class="other">
+      <h2 class="lobbyname"></h2>
+      <button type="button" class="leave">Leave lobby</button>
+      <button type="button" class="updatelobby setnewname">Set new name</button>
+      <input type="text" class="updatelobby newname" placeholder="New name">
+      <div class="messagebox">
+        <div class="message 1"></div>
+      </div>
+      <input type="text" class="msg">
+      <button type="button" class="sendmsg">Send</button>
     </div>
-    <input type="text" class="msg">
-    <button type="button" class="sendmsg">Wyślij</button>
   </div>
 </body>
 

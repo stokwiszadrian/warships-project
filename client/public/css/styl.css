@@ -52,26 +52,301 @@ body {
     width: 100%;
 }
 
-
-
-#mainlogin form {
-    display: inline-block;
+#dashboard {
+    border: 1px solid brown;
+    width: 60%;
+    display: none;
+    background-color: white;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 20px;
+    justify-items: center;
+    padding: 10px;
+    height: 100%;
 }
 
-#dashboard {
+#dashboard .usergreeting {
+    font-size: 3em;
+    grid-column: 1 / 7;
+}
+
+#dashboard input {
+    height: 2em;
+    width: 80%;
+    grid-column: span 2;
+    height: auto;
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    padding: 0px;
+}
+
+#dashboard > button {
+    font-family: 'Pirata One', cursive;
+    grid-column: span 2;
+    font-size: 2em;
+    height: auto;
+    padding: 5px;
+    width: 80%;
+}
+
+#dashboard .lobbylist {
+    grid-column: 1 / 7;
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 25px;
+    width: 90%;
+    padding: 20px;
+}
+
+.entry {
     display: none;
+}
+
+.lobbylist .lobbylisting {
+    grid-column: span 2;
+    width: 100%;
+    border: 1px solid brown;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    padding: 5px;
+}
+
+.lobbylist .entry {
+    display: none;
+}
+
+.lobbylisting h4 {
+    font-size: 2.1em;
+    grid-column: span 2;
+}
+.lobbylisting h5 {
+    font-size: 1.5em;
+    grid-column: span 2;
+    color: gray
+}
+
+.lobbylisting button {
+    font-family: 'Pirata One', cursive;
+    grid-column: span 2;
+    font-size: 2em;
+    height: auto;
+    justify-self: center;
+    padding: 5px;
+    width: 80%;
+}
+
+/* #dashboard .submit {
+    grid-column: span 1;
+    width: 100%;
+} */
+
+#lobby {
+    border: 1px solid brown;
+    width: 60%;
+    display: none;
+    background-color: white;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    justify-items: center;
+    padding: 10px;
+    height: 100%;
+}
+
+.other {
+    display: grid;
+    grid-template-columns: repeat(4, 20%);
+    grid-template-rows: repeat(9, 7%);
+    gap: 20px;
+    justify-items: flex-start;
+    width: 100%;
+}
+
+.other > button {
+    font-family: 'Pirata One', cursive;
+    grid-column: span 2;
+    font-size: 2em;
+    height: auto;
+    justify-self: center;
+    padding: 5px;
+    width: 80%;
+}
+
+.other > .leave {
+    grid-column: span 4;
+    width: 50%;
+    justify-self: flex-start;
+}
+
+.messagebox {
+    border: 1px solid brown;
+    grid-column: span 4;
+    width: 100%;
+    grid-row: span 5;
+    overflow: auto;
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+.message {
+    margin: 5px;
+    font-size: 1.4em;
+}
+
+.other h2 {
+    grid-column: span 4;
+    font-size: 3em;
+}
+
+input.msg {
+    grid-column: span 2;
+    padding: 5px;
+    font-family: 'Pirata One', cursive;
+    font-size: 1.3em;
+    width: 100%;
+    grid-row: span 1;
+}
+
+button.sendmsg {
+    grid-column: span 2;
+    grid-row: span 1;
 }
 
 #register {
+    border: 1px solid brown;
+    width: 50%;
     display: none;
+    background-color: white;
+    grid-template-columns: repeat(3, 30%);
+    grid-template-rows: repeat(3, 1fr);
+    gap: 3.5%;
+    justify-items: center;
+    padding: 10px;
+    height: 100%;
 }
 
-#lobby {
-    display: none;
+#register .return {
+    grid-column: span 1;
+    width: 50%;
+    justify-self: flex-start;
+    max-height: 2em;
 }
+
+#register .title {
+    font-size: 4em;
+    grid-column: span 2;
+    justify-content: center;
+    margin: 0;
+}
+
+#register .submit {
+    margin-top: 5%
+}
+
+#register .loginfo {
+    font-size: 3em;
+    grid-column: 1;
+    display: block;
+    width: 40%;
+}
+
+#register label {
+    height: 2em;
+    grid-column: span 1;
+    width: 100%;
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    padding: 5px;
+}
+
+#register .error {
+    font-size: 2em;
+    grid-column: span 3;
+}
+
+#register input {
+    width: 100%;
+    font-size: 1.2em;
+    font-family: 'Pirata One', cursive;
+    padding: 10px;
+
+}
+
+#register button {
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    height: auto;
+    padding: 5px;
+    width: 100%;
+}
+
 
 #settings {
-    display: none
+    border: 1px solid brown;
+    width: 55%;
+    display: none;
+    background-color: white;
+    grid-template-columns: repeat(3, 30%);
+    gap: 20px;
+    justify-items: center;
+    padding: 10px;
+    height: 100%;
+}
+
+button.settingsreturn {
+    grid-column: span 1;
+}
+
+#settings .title {
+    font-size: 3em;
+    grid-column: span 2;
+    justify-content: center;
+    margin: 0;
+}
+
+.changenamelabel {
+    grid-column: span 2;
+    justify-self: flex-start;
+    padding: 10px;
+    align-items: center;
+    display: flex;
+}
+
+#settings .loginfo {
+    font-size: 3em;
+    grid-column: 1;
+    display: block;
+    width: 40%;
+}
+
+#settings input {
+    height: 2em;
+    grid-column: span 1;
+    width: 100%;
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    padding: 5px;
+}
+
+#settings label {
+    font-size: 1.2em;
+}
+
+#settings button {
+    font-family: 'Pirata One', cursive;
+    font-size: 1.2em;
+    height: auto;
+    padding: 5px;
+    margin-top: 10px;
+    width: 100%;
+}
+
+#settings .error {
+    font-size: 2em;
+    grid-column: span 3;
+}
+
+#settings.login {
+    grid-column: span 2;
 }
 
 .error {
@@ -81,6 +356,21 @@ body {
 
 .updatelobby {
     display: none;
+}
+
+button.updatelobby {
+    grid-column: span 2;
+    font-size: 1.5em;
+    justify-self: flex-start;
+    width: 100%;
+}
+
+input.updatelobby {
+    grid-column: span 2;
+    justify-self: flex-start;
+    font-family: 'Pirata One', cursive;
+    font-size: 1.5em;
+    width: 100%;
 }
 
 .entry {

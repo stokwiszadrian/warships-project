@@ -65,7 +65,7 @@ if (Cookies.get('user') && Cookies.get('auth')) {
 	axios.get(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
 	.then(async res => {
 		main.style.display = "none"
-		dashboard.style.display = "block"
+		dashboard.style.display = "grid"
 		main.getElementsByClassName("error")[0].style.display = "none"
 		dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${Cookies.get('user')}`
 		const lobbies = (await axios.get("http://localhost:5000/lobbies")).data
@@ -93,7 +93,7 @@ if (Cookies.get('lobby')) {
     .then(async res => {
         dashboard.style.display = "none"
         lobby.getElementsByClassName("lobbyname")[0].textContent = Cookies.get('lobby')
-        lobby.style.display = "block"
+        lobby.style.display = "grid"
         board.style.display = "block"
 		axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
 		.then(res => {
@@ -139,7 +139,7 @@ async function lobbyListGenerate(lobbies) {
 				lobbyowner.textContent = lobbylisting.owner
 				const joinbutton = document.createElement('button')
 				joinbutton.type = 'button'
-				joinbutton.textContent = 'join'
+				joinbutton.textContent = 'Join'
 				joinbutton.addEventListener('click', () => joinLobbyHandler(lobbylisting.name), false)
 				newlobby.appendChild(lobbyname)
 				newlobby.appendChild(lobbyowner)
@@ -160,7 +160,7 @@ async function formSubmit() {
     axios.post("http://localhost:5000/users/login", credentials)
     .then(async res => {
         main.style.display = "none"
-        dashboard.style.display = "block"
+        dashboard.style.display = "grid"
         main.getElementsByClassName("error")[0].style.display = "none"
         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${credentials.login}`
 		const lobbies = (await axios.get("http://localhost:5000/lobbies")).data
@@ -190,7 +190,7 @@ async function logout() {
     Cookies.remove('user')
 	Cookies.remove('auth')
     logoutButton.parentElement.style.display = "none"
-    main.style.display = "block"
+    main.style.display = "grid"
 }
 
 async function addUser() {
@@ -210,7 +210,7 @@ async function addUser() {
         axios.post("http://localhost:5000/users/newuser",credentials)
         .then(res => {
             register.style.display = "none"
-            main.style.display = "block"
+            main.style.display = "grid"
             login.value = ""
             pass1.value = ""
             pass2.value = ""
@@ -228,7 +228,7 @@ async function addUser() {
 
 function moveToRegister() {
     main.style.display = "none"
-    register.style.display = "block"
+    register.style.display = "grid"
 }
 
 async function newLobbyHandler() {
@@ -239,7 +239,7 @@ async function newLobbyHandler() {
     .then(res => {
         Cookies.set('lobby', `${Cookies.get('user')}'s game`)
         dashboard.style.display = "none"
-        lobby.style.display = "block"
+        lobby.style.display = "grid"
         board.style.display = "block"
 		lobby.getElementsByClassName("updatelobby")[0].style.display = "block"
 		lobby.getElementsByClassName("updatelobby")[1].style.display = "block"
@@ -267,7 +267,7 @@ async function joinLobbyHandler(name) {
         console.log(res, "niby się udało")
         lobby.getElementsByClassName("lobbyname")[0].textContent = res.data.name
         dashboard.style.display = "none"
-        lobby.style.display = "block"
+        lobby.style.display = "grid"
         board.style.display = "block"
 		await axios.patch("http://localhost:5000/lobbies/closed", {name: res.data.name})
         const options = {
@@ -312,7 +312,7 @@ const leaveLobbyHandler = async () => {
 		await axios.patch("http://localhost:5000/lobbies/open", {name: name})
         lobby.style.display = "none"
         board.style.display = "none"
-        dashboard.style.display = "block"
+        dashboard.style.display = "grid"
         client.send(`warships/${name}/chat/${username}/dc`, "dc")
         console.log(client.isConnected())
         client.disconnect()
@@ -360,12 +360,12 @@ async function filterLobbies() {
 function settingsHandler() {
 	dashboard.style.display = "none"
 	board.style.display = "none"
-	settings.style.display = "block"
+	settings.style.display = "grid"
 }
 
 function returnHandler() {
 	settings.style.display = "none"
-	dashboard.style.display = "block"
+	dashboard.style.display = "grid"
 }
 
 async function changeNameHandler() {
@@ -412,6 +412,11 @@ async function changePassHandler() {
 	}
 }
 
+function returnToMainHandler() {
+	register.style.display = "none"
+	main.style.display = "grid"
+}
+
 const loginButton = main.getElementsByClassName("submit")[0]
 const newUserButton = main.getElementsByClassName("register")[0]
 const logoutButton = dashboard.getElementsByClassName("logout")[0]
@@ -425,7 +430,9 @@ const accountsettingsbutton = dashboard.getElementsByClassName("settings")[0]
 const settingsreturnbutton = settings.getElementsByClassName("settingsreturn")[0]
 const settingsnamebutton = settings.getElementsByClassName("changename")[0]
 const settingspassbutton = settings.getElementsByClassName("changepass")[0]
+const registerreturnbutton = register.getElementsByClassName("return")[0]
 
+registerreturnbutton.addEventListener("click", returnToMainHandler, false)
 settingsnamebutton.addEventListener("click", changeNameHandler, false)
 settingspassbutton.addEventListener("click", changePassHandler, false)
 settingsreturnbutton.addEventListener("click", returnHandler, false)
@@ -476,7 +483,7 @@ const onMessageArrived = (msg) => {
     const sender = topic[3]
     if (topic[2] == "chat"){
         const messagebox = lobby.getElementsByClassName("messagebox")[0]
-        const lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), -1)
+        const lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), 0)
         const newmsg = document.createElement('div')
         let msgcontent = ""
         switch (topic[4]) {
@@ -494,7 +501,7 @@ const onMessageArrived = (msg) => {
                 msgcontent = document.createTextNode(`${sender}: ${msg.payloadString}`)
                 newmsg.appendChild(msgcontent)
                 newmsg.setAttribute('class', `message ${lobby.getElementsByClassName("message").length + 1}`)
-                lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling)
+                lastmsg.parentElement.insertBefore(newmsg, lastmsg)
                 break;
 
             case "dc": 

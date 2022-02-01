@@ -1,4 +1,6 @@
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,700);
+@import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
+
 
 * {
 	margin: 0;
@@ -155,12 +157,13 @@ html {
 	height: 375px;
 	margin: 12px;
 	display: inline-block;
+	font-size: 1.3em;
 }
 
 .buttons {
 	position: relative;
 	display: block;
-	width: 150px;
+	width: 200px;
 	height: 40px;
 
 	margin: 50px auto;
@@ -168,6 +171,7 @@ html {
 	border-radius: 5px;
 	-webkit-border-radius: 5px;
 	-moz-border-radius: 5px;
+	font-size: 1.7em;
 
 	text-align: center;
 	line-height: 40px;

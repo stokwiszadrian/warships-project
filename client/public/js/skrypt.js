@@ -32802,7 +32802,7 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
           switch (_context.prev = _context.next) {
             case 0:
               main.style.display = "none";
-              dashboard.style.display = "block";
+              dashboard.style.display = "grid";
               main.getElementsByClassName("error")[0].style.display = "none";
               dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(_jsCookie["default"].get('user'));
               _context.next = 6;
@@ -32863,7 +32863,7 @@ if (_jsCookie["default"].get('lobby')) {
             case 0:
               dashboard.style.display = "none";
               lobby.getElementsByClassName("lobbyname")[0].textContent = _jsCookie["default"].get('lobby');
-              lobby.style.display = "block";
+              lobby.style.display = "grid";
               board.style.display = "block";
 
               _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(_jsCookie["default"].get('user'))).then(function (res) {
@@ -32932,7 +32932,7 @@ function _lobbyListGenerate() {
                 lobbyowner.textContent = lobbylisting.owner;
                 var joinbutton = document.createElement('button');
                 joinbutton.type = 'button';
-                joinbutton.textContent = 'join';
+                joinbutton.textContent = 'Join';
                 joinbutton.addEventListener('click', function () {
                   return joinLobbyHandler(lobbylisting.name);
                 }, false);
@@ -32982,7 +32982,7 @@ function _formSubmit() {
                     switch (_context7.prev = _context7.next) {
                       case 0:
                         main.style.display = "none";
-                        dashboard.style.display = "block";
+                        dashboard.style.display = "grid";
                         main.getElementsByClassName("error")[0].style.display = "none";
                         dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
                         _context7.next = 6;
@@ -33063,7 +33063,7 @@ function _logout() {
             _jsCookie["default"].remove('auth');
 
             logoutButton.parentElement.style.display = "none";
-            main.style.display = "block";
+            main.style.display = "grid";
 
           case 9:
           case "end":
@@ -33104,7 +33104,7 @@ function _addUser() {
 
               _axios["default"].post("http://localhost:5000/users/newuser", credentials).then(function (res) {
                 register.style.display = "none";
-                main.style.display = "block";
+                main.style.display = "grid";
                 login.value = "";
                 pass1.value = "";
                 pass2.value = "";
@@ -33129,7 +33129,7 @@ function _addUser() {
 
 function moveToRegister() {
   main.style.display = "none";
-  register.style.display = "block";
+  register.style.display = "grid";
 }
 
 function newLobbyHandler() {
@@ -33149,7 +33149,7 @@ function _newLobbyHandler() {
               _jsCookie["default"].set('lobby', "".concat(_jsCookie["default"].get('user'), "'s game"));
 
               dashboard.style.display = "none";
-              lobby.style.display = "block";
+              lobby.style.display = "grid";
               board.style.display = "block";
               lobby.getElementsByClassName("updatelobby")[0].style.display = "block";
               lobby.getElementsByClassName("updatelobby")[1].style.display = "block";
@@ -33199,7 +33199,7 @@ function _joinLobbyHandler() {
                         console.log(res, "niby się udało");
                         lobby.getElementsByClassName("lobbyname")[0].textContent = res.data.name;
                         dashboard.style.display = "none";
-                        lobby.style.display = "block";
+                        lobby.style.display = "grid";
                         board.style.display = "block";
                         _context12.next = 8;
                         return _axios["default"].patch("http://localhost:5000/lobbies/closed", {
@@ -33302,7 +33302,7 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
                       case 3:
                         lobby.style.display = "none";
                         board.style.display = "none";
-                        dashboard.style.display = "block";
+                        dashboard.style.display = "grid";
                         client.send("warships/".concat(name, "/chat/").concat(username, "/dc"), "dc");
                         console.log(client.isConnected());
                         client.disconnect();
@@ -33434,12 +33434,12 @@ function _filterLobbies() {
 function settingsHandler() {
   dashboard.style.display = "none";
   board.style.display = "none";
-  settings.style.display = "block";
+  settings.style.display = "grid";
 }
 
 function returnHandler() {
   settings.style.display = "none";
-  dashboard.style.display = "block";
+  dashboard.style.display = "grid";
 }
 
 function changeNameHandler() {
@@ -33528,6 +33528,11 @@ function _changePassHandler() {
   return _changePassHandler.apply(this, arguments);
 }
 
+function returnToMainHandler() {
+  register.style.display = "none";
+  main.style.display = "grid";
+}
+
 var loginButton = main.getElementsByClassName("submit")[0];
 var newUserButton = main.getElementsByClassName("register")[0];
 var logoutButton = dashboard.getElementsByClassName("logout")[0];
@@ -33541,6 +33546,8 @@ var accountsettingsbutton = dashboard.getElementsByClassName("settings")[0];
 var settingsreturnbutton = settings.getElementsByClassName("settingsreturn")[0];
 var settingsnamebutton = settings.getElementsByClassName("changename")[0];
 var settingspassbutton = settings.getElementsByClassName("changepass")[0];
+var registerreturnbutton = register.getElementsByClassName("return")[0];
+registerreturnbutton.addEventListener("click", returnToMainHandler, false);
 settingsnamebutton.addEventListener("click", changeNameHandler, false);
 settingspassbutton.addEventListener("click", changePassHandler, false);
 settingsreturnbutton.addEventListener("click", returnHandler, false);
@@ -33597,7 +33604,7 @@ var onMessageArrived = function onMessageArrived(msg) {
 
   if (topic[2] == "chat") {
     var messagebox = lobby.getElementsByClassName("messagebox")[0];
-    var lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), -1);
+    var lastmsg = Array.prototype.at.call(messagebox.getElementsByClassName("message"), 0);
     var newmsg = document.createElement('div');
     var msgcontent = "";
 
@@ -33618,7 +33625,7 @@ var onMessageArrived = function onMessageArrived(msg) {
         msgcontent = document.createTextNode("".concat(sender, ": ").concat(msg.payloadString));
         newmsg.appendChild(msgcontent);
         newmsg.setAttribute('class', "message ".concat(lobby.getElementsByClassName("message").length + 1));
-        lastmsg.parentElement.insertBefore(newmsg, lastmsg.nextSibling);
+        lastmsg.parentElement.insertBefore(newmsg, lastmsg);
         break;
 
       case "dc":
