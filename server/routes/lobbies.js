@@ -9,11 +9,6 @@ router.post("/newlobby", async (req, res) => {
         return res.status(500).send("OWNER_DUPLICATE")
     }
 
-    const duplicateName = await client.query("SELECT * FROM lobbies WHERE name = $1", [ data.name ]);
-    if(duplicateName.rows[0]) {
-        return res.status(500).send("NAME_DUPLICATE")
-    }
-
     const checkUser = await client.query("SELECT * FROM users WHERE login = $1", [ data.owner ])
     if(checkUser.rows.length === 0) {
         return res.status(500).send("USER_NOT_FOUND")
@@ -25,7 +20,8 @@ router.post("/newlobby", async (req, res) => {
 })
 
 router.get("/", async (req, res) => {
-
+    const lobbies = await client.query("SELECT * FROM lobbies")
+    res.send(lobbies.rows)
 })
 
 router.get("/checkowner/:owner", async (req, res) => {

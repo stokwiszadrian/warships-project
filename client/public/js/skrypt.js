@@ -32915,6 +32915,7 @@ function _formSubmit() {
 
             _axios["default"].post("http://localhost:5000/users/login", credentials).then( /*#__PURE__*/function () {
               var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(res) {
+                var lobbylist, firstentry, lobbies;
                 return _regenerator["default"].wrap(function _callee4$(_context4) {
                   while (1) {
                     switch (_context4.prev = _context4.next) {
@@ -32923,6 +32924,40 @@ function _formSubmit() {
                         dashboard.style.display = "block";
                         main.getElementsByClassName("error")[0].style.display = "none";
                         dashboard.getElementsByClassName("usergreeting")[0].textContent = "Welcome back, ".concat(credentials.login);
+                        lobbylist = dashboard.getElementsByClassName("lobbylist")[0];
+
+                        while (lobbylist.firstChild) {
+                          lobbylist.removeChild(lobbylist.firstChild);
+                        }
+
+                        firstentry = document.createElement('div');
+                        firstentry.className = 'lobbylisting entry';
+                        lobbylist.appendChild(firstentry);
+                        _context4.next = 11;
+                        return _axios["default"].get("http://localhost:5000/lobbies");
+
+                      case 11:
+                        lobbies = _context4.sent.data;
+                        console.log(lobbies);
+                        lobbies.forEach(function (lobbylisting) {
+                          var lastLobbyListing = Array.prototype.at.call(lobbylist.getElementsByClassName("lobbylisting"), -1);
+                          var newlobby = document.createElement('div');
+                          newlobby.setAttribute('class', "lobbylisting ".concat(lobbylisting.owner));
+                          var lobbyname = document.createElement('h4');
+                          lobbyname.textContent = lobbylisting.name;
+                          var lobbyowner = document.createElement('h5');
+                          lobbyowner.textContent = lobbylisting.owner;
+                          var joinbutton = document.createElement('button');
+                          joinbutton.type = 'button';
+                          joinbutton.textContent = 'join';
+                          joinbutton.addEventListener('click', function () {
+                            return console.log(joinbutton.parentElement.className);
+                          }, false);
+                          newlobby.appendChild(lobbyname);
+                          newlobby.appendChild(lobbyowner);
+                          newlobby.appendChild(joinbutton);
+                          lastLobbyListing.parentElement.insertBefore(newlobby, lastLobbyListing.nextSibling);
+                        });
 
                         _jsCookie["default"].set('user', credentials.login, {
                           expires: 7
@@ -32932,13 +32967,13 @@ function _formSubmit() {
                           expires: 7
                         });
 
-                        _context4.next = 8;
+                        _context4.next = 18;
                         return _axios["default"].post("http://localhost:5000/cookieauth", {
                           user: _jsCookie["default"].get('user'),
                           authnum: _jsCookie["default"].get('auth')
                         });
 
-                      case 8:
+                      case 18:
                       case "end":
                         return _context4.stop();
                     }

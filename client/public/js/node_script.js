@@ -67,6 +67,8 @@ if (Cookies.get('user') && Cookies.get('auth')) {
 		dashboard.style.display = "block"
 		main.getElementsByClassName("error")[0].style.display = "none"
 		dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${Cookies.get('user')}`
+
+
 		console.log(Cookies.get('user'))
 		await axios.delete(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
 		Cookies.set('user', Cookies.get('user'), { expires: 7 })
@@ -130,6 +132,32 @@ async function formSubmit() {
         dashboard.style.display = "block"
         main.getElementsByClassName("error")[0].style.display = "none"
         dashboard.getElementsByClassName("usergreeting")[0].textContent = `Welcome back, ${credentials.login}`
+		const lobbylist = dashboard.getElementsByClassName("lobbylist")[0]
+		while (lobbylist.firstChild) {
+			lobbylist.removeChild(lobbylist.firstChild)
+		}
+		const firstentry = document.createElement('div')
+		firstentry.className = 'lobbylisting entry'
+		lobbylist.appendChild(firstentry)
+		const lobbies = (await axios.get("http://localhost:5000/lobbies")).data
+		console.log(lobbies)
+		lobbies.forEach(lobbylisting => {
+			const lastLobbyListing = Array.prototype.at.call(lobbylist.getElementsByClassName("lobbylisting"), -1)
+			const newlobby = document.createElement('div')
+			newlobby.setAttribute('class', `lobbylisting ${lobbylisting.owner}`)
+			const lobbyname = document.createElement('h4')
+			lobbyname.textContent = lobbylisting.name
+			const lobbyowner = document.createElement('h5')
+			lobbyowner.textContent = lobbylisting.owner
+			const joinbutton = document.createElement('button')
+			joinbutton.type = 'button'
+			joinbutton.textContent = 'join'
+			joinbutton.addEventListener('click', () => console.log(joinbutton.parentElement.className), false)
+			newlobby.appendChild(lobbyname)
+			newlobby.appendChild(lobbyowner)
+			newlobby.appendChild(joinbutton)
+			lastLobbyListing.parentElement.insertBefore(newlobby, lastLobbyListing.nextSibling)
+		})
         Cookies.set('user', credentials.login, { expires: 7 })
 		Cookies.set('auth', rnd256(), { expires: 7 })
 		await axios.post("http://localhost:5000/cookieauth", {

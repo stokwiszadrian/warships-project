@@ -23,3 +23,7 @@ body {
 .updatelobby {
     display: none;
 }
+
+.entry {
+    display: none;
+}
