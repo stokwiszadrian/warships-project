@@ -32745,42 +32745,40 @@ var lobby = document.getElementById("lobby");
 var board = document.getElementById("main");
 
 function onUnload() {
-  return _onUnload.apply(this, arguments);
-}
+  if (_jsCookie["default"].get('user')) {
+    //Cookies.remove('lobby')
+    //client.send("warships/test", String(client.isConnected()))
+    //if (client.isConnected()){
+    // const test = axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
+    // console.log(test)
+    //.then(async res => {
+    // if (test){
+    // 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/end`, "end")
+    // 	axios.delete(`http://localhost:5000/lobbies/${Cookies.get('user')}`)
+    // } else {
+    // 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
+    // }
+    //})
+    //.catch(async rej => {
+    //client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
+    //})
+    //}
+    _axios["default"].patch("http://localhost:5000/users/logout", {
+      login: _jsCookie["default"].get('user')
+    });
+  }
 
-function _onUnload() {
-  _onUnload = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
-    return _regenerator["default"].wrap(function _callee3$(_context3) {
-      while (1) {
-        switch (_context3.prev = _context3.next) {
-          case 0:
-            if (!_jsCookie["default"].get('user')) {
-              _context3.next = 4;
-              break;
-            }
+  return null;
+} // function sendOnUnload() {
+// 	if (Cookies.get("user")){
+// 		if (client.isConnected()) client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
+// 		setTimeout(() => console.log("logout prompt send in"), 2000)
+// 	}
+// 	return null;
+// }
 
-            _context3.next = 3;
-            return _axios["default"].patch("http://localhost:5000/users/logout", {
-              login: _jsCookie["default"].get('user')
-            });
 
-          case 3:
-            console.log("logout prompt send in");
-
-          case 4:
-            return _context3.abrupt("return", null);
-
-          case 5:
-          case "end":
-            return _context3.stop();
-        }
-      }
-    }, _callee3);
-  }));
-  return _onUnload.apply(this, arguments);
-}
-
-window.addEventListener("beforeunload", onUnload, false);
+window.addEventListener("beforeunload", onUnload, false); //window.addEventListener("beforeunload", sendOnUnload, false)
 
 function rnd256() {
   var bytes = new Uint8Array(32);
@@ -32849,18 +32847,45 @@ if (_jsCookie["default"].get('user') && _jsCookie["default"].get('auth')) {
 }
 
 if (_jsCookie["default"].get('lobby')) {
-  _axios["default"].get("http://localhost:5000/lobbies/".concat(_jsCookie["default"].get('lobby'))).then(function (res) {
-    dashboard.style.display = "none";
-    lobby.getElementsByClassName("lobbyname")[0].textContent = _jsCookie["default"].get('lobby');
-    lobby.style.display = "block";
-    board.style.display = "block";
-    var options = {
-      timeout: 3,
-      onSuccess: onConnect,
-      onFailure: onFailure
+  _axios["default"].get("http://localhost:5000/lobbies/".concat(_jsCookie["default"].get('lobby'))).then( /*#__PURE__*/function () {
+    var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2(res) {
+      return _regenerator["default"].wrap(function _callee2$(_context2) {
+        while (1) {
+          switch (_context2.prev = _context2.next) {
+            case 0:
+              dashboard.style.display = "none";
+              lobby.getElementsByClassName("lobbyname")[0].textContent = _jsCookie["default"].get('lobby');
+              lobby.style.display = "block";
+              board.style.display = "block";
+
+              _axios["default"].get("http://localhost:5000/lobbies/checkowner/".concat(_jsCookie["default"].get('user'))).then(function (res) {
+                var options = {
+                  timeout: 3,
+                  onSuccess: onConnect,
+                  onFailure: onFailure
+                };
+                MQTTconnect(options);
+              })["catch"](function (rej) {
+                var options = {
+                  timeout: 3,
+                  onSuccess: onJoin,
+                  onFailure: onFailure
+                };
+                MQTTconnect(options);
+              });
+
+            case 5:
+            case "end":
+              return _context2.stop();
+          }
+        }
+      }, _callee2);
+    }));
+
+    return function (_x2) {
+      return _ref2.apply(this, arguments);
     };
-    MQTTconnect(options);
-  })["catch"](function (rej) {
+  }())["catch"](function (rej) {
     console.log("Pokój już nie istnieje");
 
     _jsCookie["default"].remove('lobby');
@@ -32889,7 +32914,7 @@ function _formSubmit() {
             main.getElementsByTagName("input")[1].value = "";
 
             _axios["default"].post("http://localhost:5000/users/login", credentials).then( /*#__PURE__*/function () {
-              var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(res) {
+              var _ref4 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee4(res) {
                 return _regenerator["default"].wrap(function _callee4$(_context4) {
                   while (1) {
                     switch (_context4.prev = _context4.next) {
@@ -32921,8 +32946,8 @@ function _formSubmit() {
                 }, _callee4);
               }));
 
-              return function (_x2) {
-                return _ref3.apply(this, arguments);
+              return function (_x3) {
+                return _ref4.apply(this, arguments);
               };
             }())["catch"](function (rej) {
               if (rej.response.status == 401) {
@@ -33058,6 +33083,8 @@ function _newLobbyHandler() {
               dashboard.style.display = "none";
               lobby.style.display = "block";
               board.style.display = "block";
+              lobby.getElementsByClassName("updatelobby")[0].style.display = "block";
+              lobby.getElementsByClassName("updatelobby")[1].style.display = "block";
               lobby.getElementsByClassName("lobbyname")[0].textContent = "".concat(_jsCookie["default"].get('user'), "'s game");
               var options = {
                 timeout: 3,
@@ -33133,11 +33160,11 @@ var sendMsgHandler = function sendMsgHandler() {
 };
 
 var leaveLobbyHandler = /*#__PURE__*/function () {
-  var _ref2 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee2() {
+  var _ref3 = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee3() {
     var username, name;
-    return _regenerator["default"].wrap(function _callee2$(_context2) {
+    return _regenerator["default"].wrap(function _callee3$(_context3) {
       while (1) {
-        switch (_context2.prev = _context2.next) {
+        switch (_context3.prev = _context3.next) {
           case 0:
             username = _jsCookie["default"].get('user');
             name = lobby.getElementsByClassName("lobbyname")[0].textContent;
@@ -33166,16 +33193,20 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
 
           case 4:
           case "end":
-            return _context2.stop();
+            return _context3.stop();
         }
       }
-    }, _callee2);
+    }, _callee3);
   }));
 
   return function leaveLobbyHandler() {
-    return _ref2.apply(this, arguments);
+    return _ref3.apply(this, arguments);
   };
-}(); // function reload() {
+}();
+
+function changeLobbyNameHandler() {
+  return _changeLobbyNameHandler.apply(this, arguments);
+} // function reload() {
 // 	const head = document.getElementsByTagName('head')[0]
 // 	const script = document.createElement('script')
 // 	script.src = "js/skrypt.js"  
@@ -33186,6 +33217,41 @@ var leaveLobbyHandler = /*#__PURE__*/function () {
 //   }
 
 
+function _changeLobbyNameHandler() {
+  _changeLobbyNameHandler = (0, _asyncToGenerator2["default"])( /*#__PURE__*/_regenerator["default"].mark(function _callee10() {
+    var oldname, newname;
+    return _regenerator["default"].wrap(function _callee10$(_context10) {
+      while (1) {
+        switch (_context10.prev = _context10.next) {
+          case 0:
+            oldname = _jsCookie["default"].get("lobby");
+            newname = lobby.getElementsByClassName("newname")[0].value;
+
+            _axios["default"].patch("http://localhost:5000/lobbies/newname", {
+              oldName: oldname,
+              newName: newname
+            }).then(function (res) {
+              lobby.getElementsByClassName("lobbyname")[0].textContent = newname;
+              client.send("warships/".concat(oldname, "/chat/").concat(_jsCookie["default"].get('user'), "/newname"), newname);
+
+              _jsCookie["default"].set('lobby', newname, {
+                expires: 7
+              });
+
+              client.subscribe("warships/".concat(newname, "/chat/#"));
+              client.subscribe("warships/".concat(newname, "/game/#"));
+            });
+
+          case 3:
+          case "end":
+            return _context10.stop();
+        }
+      }
+    }, _callee10);
+  }));
+  return _changeLobbyNameHandler.apply(this, arguments);
+}
+
 var loginButton = main.getElementsByClassName("submit")[0];
 var newUserButton = main.getElementsByClassName("register")[0];
 var logoutButton = dashboard.getElementsByClassName("logout")[0];
@@ -33194,6 +33260,8 @@ var newLobbyButton = dashboard.getElementsByClassName("newlobby")[0];
 var joinLobbyButton = dashboard.getElementsByClassName("submit")[0];
 var sendMsgButton = lobby.getElementsByClassName("sendmsg")[0];
 var leaveLobbyButton = lobby.getElementsByClassName("leave")[0];
+var changeLobbyNameButton = lobby.getElementsByClassName("setnewname")[0];
+changeLobbyNameButton.addEventListener("click", changeLobbyNameHandler, false);
 sendMsgButton.addEventListener("click", sendMsgHandler, false);
 newLobbyButton.addEventListener("click", newLobbyHandler, false);
 loginButton.addEventListener("click", formSubmit, false);
@@ -33290,8 +33358,21 @@ var onMessageArrived = function onMessageArrived(msg) {
             gameSetup(this);
           });
         });
+        break;
+
+      case "newname":
+        lobby.getElementsByClassName("lobbyname")[0].textContent = content;
+
+        _jsCookie["default"].set("lobby", content, {
+          expires: 7
+        });
+
+        client.subscribe("warships/".concat(content, "/chat/#"));
+        client.subscribe("warships/".concat(content, "/game/#"));
+        break;
     }
   } else {
+    //if (topic[4] == "start") setTimeout(startGame, 500)
     if (sender !== username) {
       switch (topic[4]) {
         case "shot":
@@ -33357,13 +33438,24 @@ var onMessageArrived = function onMessageArrived(msg) {
 
         case "end":
           $(".text").text(output.won);
-          $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
-        // usuwa atrybuty onclick itp ( pole wyłączone )
+          $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
+
+          break;
+
+        case "check":
+          // console.log("dotarłem do czeka", playerFleet.currentShip)
+          if (playerFleet.currentShip == playerFleet.numOfShips) client.send("warships/".concat(lobbyname, "/game/").concat(username, "/start"), "start");
+          break;
+
+        case "start":
+          setTimeout(startGame, 500);
       } // // Check if it's the end of the game
       // if (cpuFleet.ships.length == 0) {
       //      $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
       //  } else setTimeout(bot.select, 800);
 
+    } else {
+      if (topic[4] == "start") setTimeout(startGame, 500);
     }
   }
 };
@@ -33494,6 +33586,7 @@ var output = {
   "player1": " > Would you like to place your own ships or have the computer randomly do it for you?",
   "self": " > Use the mouse and the Horizontal and Vertial buttons to place your ships on the bottom grid.",
   "overlap": " > You can not overlap ships.  Please try again.",
+  "waitForOpponent": " > Opponent isn't ready yet. Waiting...",
   "start": " > Use the mouse to fire on the top grid.  Good Luck!",
   placed: function placed(name) {
     return " > Your " + name + " been placed.";
@@ -33603,6 +33696,8 @@ var bottomBoard = {
   }
 }; //  Create the games grids and layout
 
+playerFleet = new Fleet("Player 1");
+playerFleet.initShips();
 $(document).ready(function () {
   for (var i = 1; i <= 100; i++) {
     // The number and letter designators
@@ -33640,8 +33735,8 @@ function gameSetup(t) {
     selfSetup(playerFleet);
   });
   $(".random").off("click").on("click", function () {
-    playerFleet = new Fleet("Player 1");
-    playerFleet.initShips();
+    // playerFleet = new Fleet("Player 1");
+    // playerFleet.initShips();
     randomSetup(playerFleet);
   });
 }
@@ -33649,10 +33744,8 @@ function gameSetup(t) {
 function selfSetup() {
   $(".self").addClass("horz").removeClass("self").text("Horizontal");
   $(".random").addClass("vert").removeClass("random").text("Vertical"); // initialize the fleet
-
-  playerFleet = new Fleet("Player 1"); // tworzenie nowej floty ( MQTT - nazwa użytkownika here)
-
-  playerFleet.initShips(); // zainicjowanie statków
+  //playerFleet = new Fleet("Player 1"); // tworzenie nowej floty ( MQTT - nazwa użytkownika here)
+  //playerFleet.initShips(); // zainicjowanie statków
   // light up the players ship board for placement
 
   placeShip(playerFleet.ships[playerFleet.currentShip], playerFleet);
@@ -33853,9 +33946,16 @@ function checkOverlap(location, length, orientation, genFleet) {
     if (orientation == "horz") genFleet.ships[genFleet.currentShip++].populateHorzHits(loc);else genFleet.ships[genFleet.currentShip++].populateVertHits(loc);
 
     if (genFleet.currentShip == genFleet.numOfShips) {
-      // clear the call stack
-      setTimeout(startGame, 500);
-    } else randomSetup(genFleet);
+      console.log("CURRENT SHIP", genFleet.currentShip); // clear the call stack
+      //setTimeout(startGame, 500);
+
+      client.send("warships/".concat(_jsCookie["default"].get('lobby'), "/game/").concat(_jsCookie["default"].get('user'), "/check"), "check");
+      $(".text").text(output.waitForOpponent);
+    } else {
+      randomSetup(genFleet);
+      client.send("warships/".concat(_jsCookie["default"].get('lobby'), "/game/").concat(_jsCookie["default"].get('user'), "/check"), "check");
+      $(".text").text(output.waitForOpponent);
+    }
   }
 
   return false;

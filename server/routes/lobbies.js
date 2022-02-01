@@ -30,6 +30,7 @@ router.get("/", async (req, res) => {
 
 router.get("/checkowner/:owner", async (req, res) => {
     const checkName = await client.query("SELECT * FROM lobbies WHERE owner = $1", [ req.params.owner ])
+    console.log(checkName.rows[0] ? checkName.rows[0] : "kek")
     return checkName.rows[0] ? res.send(checkName.rows[0]) : res.sendStatus(500)
 })
 
@@ -39,8 +40,15 @@ router.get("/:lobbyname", async (req, res) => {
 })
 
 router.delete("/:owner", async (req, res) => {
+    console.log("deleting lobby")
     const del = await client.query("DELETE FROM lobbies WHERE owner = $1", [ req.params.owner ])
     return res.sendStatus(200)
+})
+
+router.patch("/newname", async (req, res) => {
+    const data = req.body
+    const update = await client.query("UPDATE lobbies SET name = $1 WHERE name = $2", [ data.newName, data.oldName ])
+    res.sendStatus(200)
 })
 
 module.exports = router

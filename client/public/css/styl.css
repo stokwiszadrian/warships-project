@@ -19,3 +19,7 @@ body {
     display: none;
     color: red;
 }
+
+.updatelobby {
+    display: none;
+}

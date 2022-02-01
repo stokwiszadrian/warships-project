@@ -14,15 +14,40 @@ const register = document.getElementById("register")
 const lobby = document.getElementById("lobby")
 const board = document.getElementById("main")
 
-async function onUnload() {
+function onUnload() {
 	if (Cookies.get('user')){
-		await axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
-		console.log("logout prompt send in")
+		//Cookies.remove('lobby')
+		//client.send("warships/test", String(client.isConnected()))
+		//if (client.isConnected()){
+			// const test = axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
+			// console.log(test)
+			//.then(async res => {
+			// if (test){
+			// 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/end`, "end")
+			// 	axios.delete(`http://localhost:5000/lobbies/${Cookies.get('user')}`)
+			// } else {
+			// 	client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
+			// }
+			//})
+			//.catch(async rej => {
+				//client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
+			//})
+		//}
+		axios.patch("http://localhost:5000/users/logout", { login: Cookies.get('user') })
 	}
 	return null;
 }
 
+// function sendOnUnload() {
+// 	if (Cookies.get("user")){
+// 		if (client.isConnected()) client.send(`warships/${Cookies.get('lobby')}/chat/${Cookies.get('user')}/dc`, "dc")
+// 		setTimeout(() => console.log("logout prompt send in"), 2000)
+// 	}
+// 	return null;
+// }
+
 window.addEventListener("beforeunload", onUnload, false)
+//window.addEventListener("beforeunload", sendOnUnload, false)
 
 function rnd256() {
 	const bytes = new Uint8Array(32)
@@ -62,17 +87,28 @@ else {
 
 if (Cookies.get('lobby')) {
     axios.get(`http://localhost:5000/lobbies/${Cookies.get('lobby')}`)
-    .then(res => {
+    .then(async res => {
         dashboard.style.display = "none"
         lobby.getElementsByClassName("lobbyname")[0].textContent = Cookies.get('lobby')
         lobby.style.display = "block"
         board.style.display = "block"
-        const options = {
-            timeout: 3,
-            onSuccess: onConnect,
-            onFailure: onFailure
-        }
-        MQTTconnect(options)
+		axios.get(`http://localhost:5000/lobbies/checkowner/${Cookies.get('user')}`)
+		.then(res => {
+			const options = {
+				timeout: 3,
+				onSuccess: onConnect,
+				onFailure: onFailure
+			}
+			MQTTconnect(options)
+		})
+        .catch(rej => {
+			const options = {
+				timeout: 3,
+				onSuccess: onJoin,
+				onFailure: onFailure
+			}
+			MQTTconnect(options)
+		})
     })
     .catch(rej => {
         console.log("Pokój już nie istnieje")
@@ -170,6 +206,8 @@ async function newLobbyHandler() {
         dashboard.style.display = "none"
         lobby.style.display = "block"
         board.style.display = "block"
+		lobby.getElementsByClassName("updatelobby")[0].style.display = "block"
+		lobby.getElementsByClassName("updatelobby")[1].style.display = "block"
         lobby.getElementsByClassName("lobbyname")[0].textContent = `${Cookies.get('user')}'s game`
         const options = {
             timeout: 3,
@@ -245,6 +283,21 @@ const leaveLobbyHandler = async () => {
     })
 }
 
+async function changeLobbyNameHandler() {
+	const oldname = Cookies.get("lobby")
+	const newname = lobby.getElementsByClassName("newname")[0].value
+	axios.patch("http://localhost:5000/lobbies/newname", {
+		oldName: oldname,
+		newName: newname
+	})
+	.then(res => {
+		lobby.getElementsByClassName("lobbyname")[0].textContent = newname
+		client.send(`warships/${oldname}/chat/${Cookies.get('user')}/newname`, newname)
+		Cookies.set('lobby', newname, { expires: 7 })
+		client.subscribe(`warships/${newname}/chat/#`)
+    	client.subscribe(`warships/${newname}/game/#`)
+	})
+}
 // function reload() {
 // 	const head = document.getElementsByTagName('head')[0]
 // 	const script = document.createElement('script')
@@ -263,8 +316,9 @@ const newLobbyButton = dashboard.getElementsByClassName("newlobby")[0]
 const joinLobbyButton = dashboard.getElementsByClassName("submit")[0]
 const sendMsgButton = lobby.getElementsByClassName("sendmsg")[0]
 const leaveLobbyButton = lobby.getElementsByClassName("leave")[0]
+const changeLobbyNameButton = lobby.getElementsByClassName("setnewname")[0]
 
-
+changeLobbyNameButton.addEventListener("click", changeLobbyNameHandler, false)
 sendMsgButton.addEventListener("click", sendMsgHandler, false)
 newLobbyButton.addEventListener("click", newLobbyHandler, false)
 loginButton.addEventListener("click", formSubmit, false)
@@ -351,10 +405,19 @@ const onMessageArrived = (msg) => {
 						gameSetup(this);
 					});
 				});
+				break;
+
+			case "newname":
+				lobby.getElementsByClassName("lobbyname")[0].textContent = content
+				Cookies.set("lobby", content, { expires: 7 })
+				client.subscribe(`warships/${content}/chat/#`)
+    			client.subscribe(`warships/${content}/game/#`)
+				break;
         }
 
     }
     else {
+		//if (topic[4] == "start") setTimeout(startGame, 500)
         if (sender !== username) {
             switch (topic[4]) {
                 case "shot":
@@ -412,13 +475,27 @@ const onMessageArrived = (msg) => {
                 case "end":
                     $(".text").text(output.won);
                     $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click"); // usuwa atrybuty onclick itp ( pole wyłączone )
-            }
+					break;
+
+				case "check":
+					// console.log("dotarłem do czeka", playerFleet.currentShip)
+					if (playerFleet.currentShip == playerFleet.numOfShips) client.send(`warships/${lobbyname}/game/${username}/start`, "start")
+					break;
+
+				case "start":
+					setTimeout(startGame, 500)
+					
+			}
             // // Check if it's the end of the game
             // if (cpuFleet.ships.length == 0) {
             //      $(".top").find(".points").off("mouseenter").off("mouseover").off("mouseleave").off("click");
     
             //  } else setTimeout(bot.select, 800);
         }
+		else {
+			
+			if (topic[4] == "start") setTimeout(startGame, 500)
+		}
     }
 }
 
@@ -514,6 +591,7 @@ var output = {
 	"player1": " > Would you like to place your own ships or have the computer randomly do it for you?",
 	"self": " > Use the mouse and the Horizontal and Vertial buttons to place your ships on the bottom grid.",
 	"overlap": " > You can not overlap ships.  Please try again.",
+	"waitForOpponent": " > Opponent isn't ready yet. Waiting...",
 	"start": " > Use the mouse to fire on the top grid.  Good Luck!",
 	placed: function(name) { return " > Your " + name + " been placed."; },
 	hit: function(name, type) { return " > " + name + " ship was hit." },
@@ -600,7 +678,8 @@ var bottomBoard = {
 }
 
 //  Create the games grids and layout
-
+playerFleet = new Fleet("Player 1");
+playerFleet.initShips();
 $(document).ready(function() {
 	for (var i = 1; i <= 100; i++) {
 		// The number and letter designators
@@ -639,8 +718,8 @@ function gameSetup(t) {
 		selfSetup(playerFleet); 
 	});
 	$(".random").off("click").on("click", function() {
-		playerFleet = new Fleet("Player 1");
-		playerFleet.initShips();
+		// playerFleet = new Fleet("Player 1");
+		// playerFleet.initShips();
 		randomSetup(playerFleet);
 	});
 }
@@ -651,8 +730,8 @@ function selfSetup() {
 	$(".random").addClass("vert").removeClass("random").text("Vertical");
 	
 	// initialize the fleet
-	playerFleet = new Fleet("Player 1"); // tworzenie nowej floty ( MQTT - nazwa użytkownika here)
-	playerFleet.initShips(); // zainicjowanie statków
+	//playerFleet = new Fleet("Player 1"); // tworzenie nowej floty ( MQTT - nazwa użytkownika here)
+	//playerFleet.initShips(); // zainicjowanie statków
 	// light up the players ship board for placement
 	placeShip(playerFleet.ships[playerFleet.currentShip], playerFleet);
 }
@@ -828,9 +907,16 @@ function setShip(location, ship, orientation, genericFleet, type) { // ustawieni
 		if (orientation == "horz") genFleet.ships[genFleet.currentShip++].populateHorzHits(loc);
 	 	else genFleet.ships[genFleet.currentShip++].populateVertHits(loc);
 	 	if (genFleet.currentShip == genFleet.numOfShips) {
+			console.log("CURRENT SHIP", genFleet.currentShip)
 	 		// clear the call stack
-	 		setTimeout(startGame, 500);
-	 	} else randomSetup(genFleet);
+	 		//setTimeout(startGame, 500);
+			client.send(`warships/${Cookies.get('lobby')}/game/${Cookies.get('user')}/check`, "check")
+			$(".text").text(output.waitForOpponent)
+	 	} else {
+			randomSetup(genFleet);
+			client.send(`warships/${Cookies.get('lobby')}/game/${Cookies.get('user')}/check`, "check")
+			$(".text").text(output.waitForOpponent)
+		 } 
 	 }
 	return false;
  } // end of checkOverlap()
