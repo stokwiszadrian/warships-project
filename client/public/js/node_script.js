@@ -429,6 +429,21 @@ function returnToMainHandler() {
 	main.style.display = "grid"
 }
 
+async function deleteAccountHandler() {
+	axios.get(`http://localhost:5000/cookieauth/${Cookies.get('user')}/${Cookies.get('auth')}`)
+	.then(async res => {
+		settings.style.display = "none"
+		main.style.display = "grid"
+		await axios.delete(`http://localhost:5000/users/${Cookies.get('user')}`)
+		Cookies.remove('user')
+		Cookies.remove('lobby')
+		Cookies.remove('auth')
+	})
+	.catch(rej => {
+		console.log(rej)
+	})
+}
+
 // przyciski i ich eventy
 
 const loginButton = main.getElementsByClassName("submit")[0]
@@ -445,7 +460,9 @@ const settingsreturnbutton = settings.getElementsByClassName("settingsreturn")[0
 const settingsnamebutton = settings.getElementsByClassName("changename")[0]
 const settingspassbutton = settings.getElementsByClassName("changepass")[0]
 const registerreturnbutton = register.getElementsByClassName("return")[0]
+const deleteaccbutton = settings.getElementsByClassName("accdelete")[0]
 
+deleteaccbutton.addEventListener("click", deleteAccountHandler, false)
 registerreturnbutton.addEventListener("click", returnToMainHandler, false)
 settingsnamebutton.addEventListener("click", changeNameHandler, false)
 settingspassbutton.addEventListener("click", changePassHandler, false)

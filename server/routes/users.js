@@ -79,4 +79,9 @@ router.patch('/login', async (req, res) => {
     res.sendStatus(200)
 })
 
+router.delete('/:username', async (req, res) => {
+    const del = await client.query("DELETE FROM users WHERE login=$1", [ req.params.username ])
+    res.sendStatus(200)
+})
+
 module.exports = router
